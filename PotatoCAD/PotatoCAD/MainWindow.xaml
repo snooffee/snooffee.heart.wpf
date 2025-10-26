@@ -1,0 +1,36 @@
+﻿<Window x:Class="PotatoCAD.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PotatoCAD"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <DockPanel>
+        <!-- Menu -->
+        <Menu DockPanel.Dock="Top" Height="30">
+            <MenuItem Header="Home" Click="Home_Click" />
+            <MenuItem Header="Recipe">
+                <MenuItem Header="Potato" Click="Potato_Click" />
+                <MenuItem Header="Tomato" Click="Tomato_Click" />
+                <MenuItem Header="Lemon" Click="Lemon_Click" />
+            </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem Header="About" Click="About_Click" />
+                <MenuItem Header="Support" Click="Support_Click" />
+            </MenuItem>
+        </Menu>
+        <!-- Content Area -->
+        <Grid Name="MainContentGrid" Background="WhiteSmoke" Margin="10"/>
+        <DockPanel>
+            <!-- Buttons on top -->
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="5">
+                <Button x:Name="BtnWireframe" Content="Wireframe" Width="100" Margin="5"/>
+                <Button x:Name="BtnShaded" Content="Shaded" Width="100" Margin="5"/>
+            </StackPanel>
+
+            <!-- OCC Panel -->
+            <WindowsFormsHost x:Name="OcHost" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        </DockPanel>
+    </DockPanel>
+</Window>
