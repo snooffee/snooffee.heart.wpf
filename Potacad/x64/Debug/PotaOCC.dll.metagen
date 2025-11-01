@@ -1,0 +1,194 @@
+ImageRuntimeVersion: v4.0.30319
+Assembly PotaOCC, Version=1.0.*, Culture=Invariant Language (Invariant Country): 
+	hash=SHA1, flags=PublicKey
+Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Class PotaOCC.ArcDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawArc(IntPtr, Double, Double, Double, Double, Double, Double, Int32, Int32, Int32, Double): PrivateScope, Public, Static, HideBySig
+    DrawArcBatch(IntPtr, Double[], Double[], Double[], Double[], Double[], Double[], String[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
+    MakeArc(Double, Double, Double, Double, Double, Double): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.ByblockDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawByblockBatch(IntPtr, Double[], Double[], Double[], Double[], Double[], Double[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.CircleDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawCircle(TopoDS_Edge*, handle<V3d_View>*, IntPtr, Double, Double, Double, Double, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    DrawCircleBatch(IntPtr, Double[], Double[], Double[], Double[], String[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
+    MakeCircle(Double, Double, Double, Double): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.ShapeDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawBox(IntPtr, Double, Double, Double, Int32, Int32, Int32, Double, Double, Int32, Int32, Int32, String): PrivateScope, Public, Static, HideBySig
+    RotateBoxAroundCenter(IntPtr, Double, Double): PrivateScope, Public, Static, HideBySig
+    SetWireframe(IntPtr): PrivateScope, Public, Static, HideBySig
+    SetShaded(IntPtr): PrivateScope, Public, Static, HideBySig
+    ClearAllShapes(IntPtr): PrivateScope, Public, Static, HideBySig
+    Draw2DBoxWithLabel(IntPtr, Double, Double, Double, Double, Int32, Int32, Int32, Double, Double, Int32, Int32, Int32, Double, String, Int32, Int32, Int32, Double, Double, String, String): PrivateScope, Public, Static, HideBySig
+    ActivateFaceSelection(IntPtr): PrivateScope, Public, Static, HideBySig
+    AlignViewToSelectedFace(IntPtr): PrivateScope, Public, Static, HideBySig
+    UpdateSelection(IntPtr, Int32, Int32, Boolean(HasFieldMarshal)): PrivateScope, Public, Static, HideBySig
+    UpdateSelection(IntPtr, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    ResetView(IntPtr): PrivateScope, Public, Static, HideBySig
+    ScreenToWorld(gp_Pnt*, handle<V3d_View>*, Double, Double): PrivateScope, Public, Static, HideBySig
+    CreateEdgeSafe(TopoDS_Edge*, gp_Pnt* IsImplicitlyDereferenced, gp_Pnt* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    CreateCircleSafe(TopoDS_Edge*, gp_Circ* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    CreateEllipseSafe(TopoDS_Edge*, gp_Elips* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    SetupOverlay(handle<AIS_InteractiveObject>* IsImplicitlyDereferenced, Quantity_NameOfColor IsConst, Double): PrivateScope, Public, Static, HideBySig
+    eraseLineByDetectedIO(handle<AIS_InteractiveObject>*, vector<opencascade::handle<AIS_Shape>\,std::allocator<opencascade::handle<AIS_Shape> > >* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    findIntersectionPoints(gp_Pnt* IsImplicitlyDereferenced, handle<Geom_Curve>* IsImplicitlyDereferenced, Double, Double, handle<AIS_InteractiveObject>*, handle<AIS_InteractiveContext>*, vector<opencascade::handle<AIS_Shape>\,std::allocator<opencascade::handle<AIS_Shape> > >* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    IsClosedWire(TopoDS_Wire* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    BuildWireFromSelection(TopoDS_Wire*, NCollection_List<opencascade::handle<AIS_InteractiveObject> >* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    BuildCompoundFromSelection(handle<AIS_InteractiveObject>*, NCollection_List<opencascade::handle<AIS_InteractiveObject> >* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    HighlightSelectedObjects(handle<AIS_InteractiveContext>*, NCollection_List<opencascade::handle<AIS_InteractiveObject> >* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    checkAndTrimEdge(TopoDS_Edge* IsImplicitlyDereferenced, TopoDS_Edge* IsImplicitlyDereferenced, handle<Geom_Curve>* IsImplicitlyDereferenced, Double, Double, handle<AIS_InteractiveObject>*, Boolean* IsImplicitlyDereferenced, handle<AIS_InteractiveContext>*, vector<opencascade::handle<AIS_Shape>\,std::allocator<opencascade::handle<AIS_Shape> > >* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    ConvertLineToCenterLine(handle<AIS_InteractiveContext>* IsImplicitlyDereferenced, TopoDS_Edge* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    DisplayCenterLine(handle<AIS_Shape>*, handle<AIS_InteractiveContext>* IsImplicitlyDereferenced, TopoDS_Edge* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    CreateSafeAISShape(handle<AIS_Shape>*, gp_Pnt* IsImplicitlyDereferenced, gp_Pnt* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.DimensionDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawDimensionBatch(IntPtr, Double[], Double[], Double[], Double[], Double[], Double[], Double[], Double[], Double[], String[], String[], String[], Int32[], Int32[], Int32[]): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.TextDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawTextBatch(IntPtr, Double[], Double[], Double[], String[], Double[], Double[], Double[], Int32[], Int32[], Int32[], Double[], Double): PrivateScope, Public, Static, HideBySig
+    DrawSingleText(handle<AIS_Shape>*, IntPtr, Double, Double, Double, String, Double, Double, Double, Int32, Int32, Int32): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.EllipseDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawEllipseBatch(IntPtr, Double[], Double[], Double[], Double[], Double[], Double[], String[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
+    DrawEllipse(TopoDS_Edge*, handle<V3d_View>*, IntPtr, Double, Double, Double, Double, Int32, Int32): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.LineDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawLineWithoutSnapping(handle<AIS_Shape>*, handle<V3d_View>*, IntPtr, Double, Double, Double, Double, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    DrawLine(handle<AIS_Shape>*, handle<V3d_View>*, IntPtr, Double, Double, Double, Double, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    DrawLineBatch(IntPtr, Double[], Double[], Double[], Double[], Double[], Double[], String[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
+    MakeLine(Double, Double, Double, Double, Double, Double): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.ViewHelper: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    ResetView(IntPtr): PrivateScope, Public, Static, HideBySig
+    ClearCreateEntity(NativeViewerHandle*): PrivateScope, Public, Static, HideBySig
+    DrawCenterMarker(NativeViewerHandle*, Double, Double, Double): PrivateScope, Public, Static, HideBySig
+    ClearCenterMarker(NativeViewerHandle*): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.LwPolylineDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawLwPolylineBatch(IntPtr, Double[], Double[], Double[], Double[], Int32[], Int32[], Int32[], Double[], Boolean[]): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.MouseControlSettings: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    PotaOCC.MouseAction LeftButtonAction : Public
+    PotaOCC.MouseAction MiddleButtonAction : Public
+    PotaOCC.MouseAction RightButtonAction : Public
+    PotaOCC.MouseAction WheelScrollAction : Public
+Class PotaOCC.MouseHandler: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    GetCurrentMode(): PrivateScope, Public, Static, HideBySig
+    StartRotation(IntPtr, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    Rotate(IntPtr, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    Pan(IntPtr, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    Zoom(IntPtr, Double): PrivateScope, Public, Static, HideBySig
+    ZoomAt(IntPtr, Int32, Int32, Double): PrivateScope, Public, Static, HideBySig
+    SetMouseControlSettings(IntPtr, MouseControlSettings): PrivateScope, Public, Static, HideBySig
+    OnMouseDown(IntPtr, Int32, Int32, Boolean(HasFieldMarshal)): PrivateScope, Public, Static, HideBySig
+    OnMouseMove(IntPtr, Int32, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    OnMouseUp(IntPtr, Int32, Int32, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    ShowAxisTriad(IntPtr): PrivateScope, Public, Static, HideBySig
+    HideAxisTriad(IntPtr): PrivateScope, Public, Static, HideBySig
+    ResetViewToAxis(handle<V3d_View>*, basic_string<char\,std::char_traits<char>\,std::allocator<char> >* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    CheckRayIntersectionWithAxis(gp_Pnt* IsImplicitlyDereferenced, gp_Dir* IsImplicitlyDereferenced, basic_string<char\,std::char_traits<char>\,std::allocator<char> >* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    ResetView(IntPtr, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    OnKeyDown(IntPtr, SByte IsSignUnspecifiedByte): PrivateScope, Public, Static, HideBySig
+    OnKeyUp(IntPtr, SByte IsSignUnspecifiedByte): PrivateScope, Public, Static, HideBySig
+    HandleMouseDownAction(handle<AIS_InteractiveContext>*, handle<V3d_View>*, Int32, Int32, Boolean(HasFieldMarshal)): PrivateScope, Public, Static, HideBySig
+    HandleRevolveMode(handle<AIS_InteractiveContext>*, handle<V3d_View>*): PrivateScope, Public, Static, HideBySig
+    PickWireAtCursor(TopoDS_Wire*, handle<AIS_InteractiveContext>* IsImplicitlyDereferenced, handle<V3d_View>* IsImplicitlyDereferenced, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    PickEdgeAtCursor(TopoDS_Edge*, handle<AIS_InteractiveContext>* IsImplicitlyDereferenced, handle<V3d_View>* IsImplicitlyDereferenced, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    PickShapeAtCursor(TopoDS_Shape*, handle<AIS_InteractiveContext>* IsImplicitlyDereferenced, handle<V3d_View>* IsImplicitlyDereferenced, Int32, Int32): PrivateScope, Public, Static, HideBySig
+Struct PotaOCC.MouseHandler+MouseMode: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    MouseMode Default = 0 : Public, Static, Literal, HasDefault
+    MouseMode Move = 1 : Public, Static, Literal, HasDefault
+    MouseMode Rotate = 2 : Public, Static, Literal, HasDefault
+    MouseMode MateAlignment = 3 : Public, Static, Literal, HasDefault
+Class PotaOCC.Print: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    ShapeDetails(handle<AIS_Shape>*): PrivateScope, Public, Static, HideBySig
+    EdgeDetails(TopoDS_Shape* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    VertexDetails(TopoDS_Shape* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    PrintWireDetails(TopoDS_Shape* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+Struct PotaOCC.MouseAction: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    PotaOCC.MouseAction None = 0 : Public, Static, Literal, HasDefault
+    PotaOCC.MouseAction Rotate = 1 : Public, Static, Literal, HasDefault
+    PotaOCC.MouseAction Pan = 2 : Public, Static, Literal, HasDefault
+    PotaOCC.MouseAction Zoom = 3 : Public, Static, Literal, HasDefault
+    PotaOCC.MouseAction Select = 4 : Public, Static, Literal, HasDefault
+Class PotaOCC.PointDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawPoint(IntPtr, Double, Double, Double, Int32, Int32, Int32, Double): PrivateScope, Public, Static, HideBySig
+    DrawPointBatch(IntPtr, Double[], Double[], Double[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
+    MakePoint(Double, Double, Double): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.PolylineDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawPolylineBatch(IntPtr, Double[], Double[], Double[], Int32[], Int32[], Int32[], Double[], Boolean[]): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.Class1: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+Class PotaOCC.SolidDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawSolid(IntPtr, Double, Double, Double, Double, Double, Double, Double, Double, Int32, Int32, Int32, Double): PrivateScope, Public, Static, HideBySig
+    DrawSolidBatch(IntPtr, Double[], Double[], Double[], Double[], Double[], Double[], Double[], Double[], Double[], Double[], Double[], Double[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.SplineDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawSplineBatch(IntPtr, Double[], Double[], Double[], Int32[], Int32[], Int32[], Double[], Int32): PrivateScope, Public, Static, HideBySig
+    DrawSplineWithKnotsBatch(IntPtr, Double*, Double*, Double*, Int32*, Int32*, Int32*, Double*, Int32, Double*, Int32*, Int32, Int32): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.VertexDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawVertexBatch(IntPtr, Double[], Double[], Double[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.ViewerHandle: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    IntPtr ViewPtr : Public
+    IntPtr ContextPtr : Public
+    IntPtr NativeHandle : Public
+    Double PreviousPixelsPerUnit : Public
+    System.Collections.Generic.List`1[System.Double] PixelHeights : Public
+Class PotaOCC.ViewerManager: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    CreateViewer(IntPtr, Int32, Int32, Control): PrivateScope, Public, Static, HideBySig
+    ResizeViewer(IntPtr, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    FitAll(IntPtr): PrivateScope, Public, Static, HideBySig
+    UpdateView(IntPtr, Boolean(HasFieldMarshal)): PrivateScope, Public, Static, HideBySig
+    SetBackgroundColor(IntPtr, Int32, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    DisposeViewer(IntPtr): PrivateScope, Public, Static, HideBySig
+    Display(IntPtr, handle<AIS_InteractiveObject>*, Boolean(HasFieldMarshal)): PrivateScope, Public, Static, HideBySig
+    Remove(IntPtr, IntPtr): PrivateScope, Public, Static, HideBySig
+    Redraw(IntPtr): PrivateScope, Public, Static, HideBySig
+    Convert(IntPtr, Int32, Int32, Double&, Double&, Double&): PrivateScope, Public, Static, HideBySig
+    WorldToScreen(IntPtr, Double, Double, Double, Double*, Double*): PrivateScope, Public, Static, HideBySig
