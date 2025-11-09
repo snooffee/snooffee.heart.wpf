@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using static Potacad.Helpers.DxfHelper;
-
 namespace Potacad.Helpers
 {
     public static class EntityDrawerHelper
@@ -27,7 +26,6 @@ namespace Potacad.Helpers
                 yield return (code.Trim(), value.Trim());
             }
         }
-
         public static List<(string code, string value)> ReadDxfPairs(string path)
         {
             var pairs = new List<(string code, string value)>(8192);
@@ -41,8 +39,6 @@ namespace Potacad.Helpers
             }
             return pairs;
         }
-
-
         public static IEnumerator<(string Code, string Value)> PushBack(
         IEnumerator<(string Code, string Value)> enumerator,
         (string Code, string Value) current)
@@ -94,14 +90,7 @@ namespace Potacad.Helpers
                 _ => (128, 128, 128)
             };
         }
-
-        public static unsafe async Task Spline(
-            ViewerHandle viewer,
-            List<(double x, double y, double z)> controlPoints,
-            int color,
-            int degree,
-            List<double> rawKnots = null,
-            List<int> rawMultiplicities = null)
+        public static unsafe async Task Spline(ViewerHandle viewer, List<(double x, double y, double z)> controlPoints, int color, int degree, List<double> rawKnots = null, List<int> rawMultiplicities = null)
         {
             if (viewer?.ContextPtr == IntPtr.Zero || controlPoints == null || controlPoints.Count < 2)
                 return;
@@ -229,7 +218,6 @@ namespace Potacad.Helpers
             // Return the final result
             return (knots.ToArray(), multiplicities.ToArray());
         }
-
         /// <summary>Sanitize provided knots and multiplicities: ensure spacing, enforce monotonicity, clamp mults.</summary>
         private static (double[] knots, int[] mults) SanitizeKnotMultiplicity(List<double> rawKnots, List<int> rawMults, int degree)
         {
@@ -281,7 +269,6 @@ namespace Potacad.Helpers
 
             return (uniq.ToArray(), mults.ToArray());
         }
-
         public static async Task Polyline(ViewerHandle viewer, List<(double x, double y, double z, int color)> polylineVertices, bool isClosed)
         {
             if (polylineVertices == null || polylineVertices.Count < 2 || viewer?.ContextPtr == IntPtr.Zero) return;
@@ -376,7 +363,6 @@ namespace Potacad.Helpers
             for (int i = 0; i < ids.Length; i++)
                 _dxfShapeDict[ids[i]] = new { Type = "Vertex", Data = batch[i] };
         }
-
         public static async Task Text(ViewerHandle viewer, List<(double x, double y, string value, double height, double rotation, int color)> textsListRaw)
         {
             int n = textsListRaw.Count;
@@ -412,7 +398,6 @@ namespace Potacad.Helpers
                 1.0 // scene scale
             );
         }
-
         public static async Task ByBlock(ViewerHandle viewer, List<(double x1, double y1, double z1, double x2, double y2, double z2, int color)> batch)
         {
             if (batch == null || batch.Count == 0 || viewer?.ContextPtr == IntPtr.Zero) return;
@@ -448,7 +433,6 @@ namespace Potacad.Helpers
             for (int i = 0; i < ids.Length; i++)
                 _dxfShapeDict[ids[i]] = new { Type = "ByBlock", Data = batch[i] };
         }
-
         public static async Task Solid(ViewerHandle viewer, List<(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, int color)> batch)
         {
             if (batch == null || batch.Count == 0 || viewer?.ContextPtr == IntPtr.Zero) return;
@@ -487,7 +471,6 @@ namespace Potacad.Helpers
             for (int i = 0; i < ids.Length; i++)
                 _dxfShapeDict[ids[i]] = new { Type = "Solid", Data = batch[i] };
         }
-
         public static async Task Arc(ViewerHandle viewer, List<(double cx, double cy, double r, double startAngle, double endAngle, int color, string lineType)> batch)
         {
             if (batch == null || batch.Count == 0 || viewer?.ContextPtr == IntPtr.Zero)
@@ -518,7 +501,6 @@ namespace Potacad.Helpers
             for (int i = 0; i < ids.Length; i++)
                 _dxfShapeDict[ids[i]] = new { Type = "Arc", Data = batch[i] };
         }
-
         public static async Task Point(ViewerHandle viewer, List<(double x, double y, int color)> batch)
         {
             if (batch == null || batch.Count == 0 || viewer?.ContextPtr == IntPtr.Zero)
@@ -544,7 +526,6 @@ namespace Potacad.Helpers
             for (int i = 0; i < ids.Length; i++)
                 _dxfShapeDict[ids[i]] = new { Type = "Point", Data = batch[i] };
         }
-
         public static async Task Line(ViewerHandle viewer, List<(double x1, double y1, double x2, double y2, int color, string lineType)> batch)
         {
             if (batch == null || batch.Count == 0 || viewer?.ContextPtr == IntPtr.Zero)
@@ -574,7 +555,6 @@ namespace Potacad.Helpers
                 _dxfShapeDict[ids[i]] = new { Type = "Line", Data = batch[i] };
 
         }
-
         public static async Task Circle(ViewerHandle viewer, List<(double cx, double cy, double r, int color, string lineType)> batch)
         {
             if (batch == null || batch.Count == 0 || viewer?.ContextPtr == IntPtr.Zero)
@@ -602,7 +582,6 @@ namespace Potacad.Helpers
                 _dxfShapeDict[ids[i]] = new { Type = "Circle", Data = batch[i] };
 
         }
-
         public static async Task Ellipse(ViewerHandle viewer, List<(double cx, double cy, double semiMajor, double semiMinor, double rotationAngle, int color, string lineType)> batch)
         {
             if (batch == null || batch.Count == 0 || viewer?.ContextPtr == IntPtr.Zero)
@@ -632,8 +611,136 @@ namespace Potacad.Helpers
             for (int i = 0; i < ids.Length; i++)
                 _dxfShapeDict[ids[i]] = new { Type = "Ellipse", Data = batch[i] };
         }
+        public static async Task Hatch(ViewerHandle viewer, List<List<(double x, double y)>> boundaryGroups, int color, string patternName, bool isSolid)
+        {
+            try
+            {
+                // ✅ Safety checks
+                if (viewer == null || viewer.ContextPtr == IntPtr.Zero || viewer.ContextPtr == null)
+                {
+                    Console.WriteLine("❌ Viewer or ContextPtr is null");
+                    return;
+                }
 
-       
+                if (boundaryGroups == null || boundaryGroups.Count == 0)
+                {
+                    Console.WriteLine("❌ Hatch requires at least one boundary");
+                    return;
+                }
+
+                // Filter valid boundaries (each boundary must have >=3 points)
+                var validGroups = boundaryGroups
+                    .Select(g => g.Where(p => !double.IsNaN(p.x) && !double.IsNaN(p.y)).ToList())
+                    .Where(g => g.Count >= 3)
+                    .ToList();
+
+                if (validGroups.Count == 0)
+                {
+                    Console.WriteLine("❌ No valid boundaries for hatch");
+                    return;
+                }
+
+                // ✅ Prepare arrays for OCCT native call (outer + inner wires)
+                var boundaryXArr = new double[1][][];
+                var boundaryYArr = new double[1][][];
+                var boundaryZArr = new double[1][][];
+
+                // Single hatch entry (batch of 1)
+                boundaryXArr[0] = validGroups.Select(g => g.Select(p => p.x).ToArray()).ToArray();
+                boundaryYArr[0] = validGroups.Select(g => g.Select(p => p.y).ToArray()).ToArray();
+                boundaryZArr[0] = validGroups.Select(g => new double[g.Count]).ToArray(); // planar Z = 0
+
+                var rgb = AcadColorToRgb(color);
+                int[] rArr = new int[1] { (int)rgb.r };
+                int[] gArr = new int[1] { (int)rgb.g };
+                int[] bArr = new int[1] { (int)rgb.b };
+
+                double[] tArr = new double[1] { 0.0 }; // opaque
+                string[] patternArr = new string[1] { patternName ?? "SOLID" };
+                bool[] solidArr = new bool[1] { isSolid };
+
+                // ✅ Call native OCCT batch
+                var ids = HatchDrawer.DrawHatchBatch(
+                    viewer.NativeHandle,
+                    boundaryXArr,
+                    boundaryYArr,
+                    boundaryZArr,
+                    rArr, gArr, bArr,
+                    tArr,
+                    patternArr,
+                    solidArr
+                );
+
+                if (ids == null)
+                {
+                    Console.WriteLine("❌ HatchDrawer returned null");
+                    return;
+                }
+
+                // ✅ Register hatch IDs
+                for (int i = 0; i < ids.Length; i++)
+                {
+                    if (!_dxfShapeDict.ContainsKey(ids[i]))
+                    {
+                        _dxfShapeDict[ids[i]] = new
+                        {
+                            Type = "Hatch",
+                            Data = new { boundaryGroups, color, patternName, isSolid }
+                        };
+                    }
+                }
+
+                Console.WriteLine($"✅ Hatch created successfully. Total: {ids.Length}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Exception in Hatch(): {ex}");
+            }
+        }
+        public static async Task Faces3D(ViewerHandle viewer, List<(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3, double x4, double y4, double z4, int color)> batch)
+        {
+            if (batch == null || batch.Count == 0 || viewer?.ContextPtr == IntPtr.Zero)
+                return;
+
+            int n = batch.Count;
+
+            // Coordinates
+            double[] x1Arr = batch.Select(f => f.x1).ToArray();
+            double[] y1Arr = batch.Select(f => f.y1).ToArray();
+            double[] z1Arr = batch.Select(f => f.z1).ToArray();
+
+            double[] x2Arr = batch.Select(f => f.x2).ToArray();
+            double[] y2Arr = batch.Select(f => f.y2).ToArray();
+            double[] z2Arr = batch.Select(f => f.z2).ToArray();
+
+            double[] x3Arr = batch.Select(f => f.x3).ToArray();
+            double[] y3Arr = batch.Select(f => f.y3).ToArray();
+            double[] z3Arr = batch.Select(f => f.z3).ToArray();
+
+            double[] x4Arr = batch.Select(f => f.x4).ToArray();
+            double[] y4Arr = batch.Select(f => f.y4).ToArray();
+            double[] z4Arr = batch.Select(f => f.z4).ToArray();
+
+            // Colors
+            int[] rArr = batch.Select(f => (int)AcadColorToRgb(f.color).r).ToArray();
+            int[] gArr = batch.Select(f => (int)AcadColorToRgb(f.color).g).ToArray();
+            int[] bArr = batch.Select(f => (int)AcadColorToRgb(f.color).b).ToArray();
+
+            // Transparency (fully opaque)
+            double[] tArr = new double[n];
+
+            var ids = Faces3DDrawer.DrawFaces3DBatch(
+                viewer.ContextPtr,
+                x1Arr, y1Arr, z1Arr,
+                x2Arr, y2Arr, z2Arr,
+                x3Arr, y3Arr, z3Arr,
+                x4Arr, y4Arr, z4Arr,
+                rArr, gArr, bArr,
+                tArr);
+
+            // Store entity info for reference / selection
+            for (int i = 0; i < ids.Length; i++) _dxfShapeDict[ids[i]] = new { Type = "3DFACE", Data = batch[i] };
+        }
         private static (int r, int g, int b) ColorNameToRgb(string colorName)
         {
             switch (colorName?.ToLower())

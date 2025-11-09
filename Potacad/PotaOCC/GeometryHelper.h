@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include <gp_Pnt.hxx>
 #include <gp_Vec.hxx>
 #include <gp_Trsf.hxx>
@@ -8,27 +9,26 @@
 #include <V3d_View.hxx>
 #include <AIS_ListOfInteractive.hxx>
 #include <TopoDS_Wire.hxx>
+#include <AIS_Shape.hxx>
 
-namespace PotaOCC {
+namespace PotaOCC
+{
     struct NativeViewerHandle;
-    class GeometryHelper
+    namespace GeometryHelper
     {
-    public:
-        // ✅ Compute normal vector of a face in world coordinates
-        static gp_Vec ComputeNormal(const TopoDS_Face& face);
-
-        // ✅ Compute transformation to align two faces (p1+n1 -> p2+n2)
-        static gp_Trsf ComputeFaceToFaceMate(const gp_Pnt& p1, const gp_Vec& n1,
-            const gp_Pnt& p2, const gp_Vec& n2);
-
-        // ✅ Apply a transformation to a shape
-        static void ApplyTransformationToShape(TopoDS_Shape& shape, const gp_Trsf& transform);
-        static bool PerformRectangleSelection(
-            NativeViewerHandle* native,
-            const Handle(AIS_InteractiveContext)& context,
-            const Handle(V3d_View)& view,
-            int h,
-            int w,
-            int mouseY);
-    };
+        gp_Vec ComputeNormal(const TopoDS_Face& face);
+        gp_Trsf ComputeFaceToFaceMate(const gp_Pnt& p1, const gp_Vec& n1, const gp_Pnt& p2, const gp_Vec& n2);
+        void ApplyTransformationToShape(TopoDS_Shape& shape, const gp_Trsf& transform);
+        void ApplyLocalTransformationToShape(PotaOCC::NativeViewerHandle* native, Handle(AIS_InteractiveContext) context);
+        void ApplyLocalTransformationToAISShape(Handle(AIS_Shape) aisShape, Handle(AIS_InteractiveContext) context);
+        void AnimateZoomWindow(PotaOCC::NativeViewerHandle* native, Handle(V3d_View) view, int xMin, int yMin, int xMax, int yMax, int steps);
+        bool PerformRectangleSelection(PotaOCC::NativeViewerHandle* native, const Handle(AIS_InteractiveContext)& context, const Handle(V3d_View)& view, int h, int w, int mouseY);
+        Handle(AIS_Shape) CreateHighlightedFace(const TopoDS_Face& face);
+        TopoDS_Shape GetSafeDetectedShape(const Handle(AIS_InteractiveContext)& context);
+        void ClearHoverHighlightIfAny(PotaOCC::NativeViewerHandle* native, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view);
+        void ShowHoverHighlightForFace(PotaOCC::NativeViewerHandle* native, const TopoDS_Face& face, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view);
+        void HandleFaceHover(PotaOCC::NativeViewerHandle* native, int x, int y, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view);
+        void HandleEdgeHover(PotaOCC::NativeViewerHandle* native, int x, int y, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view);
+        void HandleKeyMode(PotaOCC::NativeViewerHandle* native, char key);
+    }
 }

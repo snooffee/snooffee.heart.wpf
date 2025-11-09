@@ -1,18 +1,23 @@
-#pragma once
+﻿#pragma once
+
 #include "NativeViewerHandle.h"
-namespace PotaOCC {
-    public ref class ViewHelper
+
+namespace PotaOCC
+{
+    struct NativeViewerHandle;
+
+    // ✅ This is the C#-visible wrapper
+    public ref class ViewHelperPublic
     {
     public:
         static void ResetView(System::IntPtr viewPtr);
-
-        // Clears any entities like lines, circles, and resets flags
-        static void ClearCreateEntity(NativeViewerHandle* native);
-
-        // Draw a center marker at a given point (x, y, z) in the 3D view
-        static void DrawCenterMarker(NativeViewerHandle* native, double x, double y, double z);
-
-        // Clears the center marker
-        static void ClearCenterMarker(NativeViewerHandle* native);
     };
+
+    // ✅ This stays as pure C++ native namespace (not C# visible)
+    namespace ViewHelper
+    {
+        void ClearCreateEntity(NativeViewerHandle* native);
+        void DrawCenterMarker(NativeViewerHandle* native, double x, double y, double z);
+        void ClearCenterMarker(NativeViewerHandle* native);
+    }
 }

@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include <AIS_InteractiveObject.hxx>
 #include <AIS_InteractiveContext.hxx>
 #include <AIS_Shape.hxx>
@@ -13,9 +14,7 @@
 #include "AIS_OverlayCircle.h"
 #include "AIS_OverlayEllipse.h"
 #include <BRepLib_MakeFace.hxx>
-
 #using <System.Windows.Forms.dll>
-
 using namespace System::Windows::Forms;
 
 namespace PotaOCC {
@@ -138,6 +137,11 @@ namespace PotaOCC {
         Handle(AIS_Shape) dimLabelTemp;
         Handle(AIS_Shape) dimArrow1Temp;
         Handle(AIS_Shape) dimArrow2Temp;
+
+        bool isZoomWindowMode = false;
+        Handle(AIS_Shape) highlightedFace;
+        Handle(AIS_Shape) hoverHighlightedFace;
+
 
         NativeViewerHandle()
         {

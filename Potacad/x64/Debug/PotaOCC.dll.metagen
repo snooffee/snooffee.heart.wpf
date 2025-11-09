@@ -70,6 +70,18 @@ Class PotaOCC.EllipseDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldIn
   Methods:
     DrawEllipseBatch(IntPtr, Double[], Double[], Double[], Double[], Double[], Double[], String[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
     DrawEllipse(TopoDS_Edge*, handle<V3d_View>*, IntPtr, Double, Double, Double, Double, Int32, Int32): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.Faces3DDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawFaces3DBatch(IntPtr, Double[], Double[], Double[], Double[], Double[], Double[], Double[], Double[], Double[], Double[], Double[], Double[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.ViewHelperPublic: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    ResetView(IntPtr): PrivateScope, Public, Static, HideBySig
+Class PotaOCC.HatchDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawHatchBatch(IntPtr, Double[][][], Double[][][], Double[][][], Int32[], Int32[], Int32[], Double[], String[], Boolean[]): PrivateScope, Public, Static, HideBySig
 Class PotaOCC.LineDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
   Methods:
@@ -77,13 +89,6 @@ Class PotaOCC.LineDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
     DrawLine(handle<AIS_Shape>*, handle<V3d_View>*, IntPtr, Double, Double, Double, Double, Int32, Int32): PrivateScope, Public, Static, HideBySig
     DrawLineBatch(IntPtr, Double[], Double[], Double[], Double[], Double[], Double[], String[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
     MakeLine(Double, Double, Double, Double, Double, Double): PrivateScope, Public, Static, HideBySig
-Class PotaOCC.ViewHelper: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
-    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
-  Methods:
-    ResetView(IntPtr): PrivateScope, Public, Static, HideBySig
-    ClearCreateEntity(NativeViewerHandle*): PrivateScope, Public, Static, HideBySig
-    DrawCenterMarker(NativeViewerHandle*, Double, Double, Double): PrivateScope, Public, Static, HideBySig
-    ClearCenterMarker(NativeViewerHandle*): PrivateScope, Public, Static, HideBySig
 Class PotaOCC.LwPolylineDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
   Methods:

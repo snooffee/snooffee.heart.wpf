@@ -103,6 +103,7 @@ namespace Potacad.Helpers
 
         // ✅ DXF Entity Parser
         private (
+        List<(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3, double x4, double y4, double z4, int color)> faces3DList,
         List<(List<(double x, double y, double bulge)> vertices, bool closed, int color)> lwpolylinesList,
         List<(List<(double x, double y)> boundaryPoints, int color, string patternName, bool isSolid)> hatchList,
         List<LinearDimensionData> linearDimensionsList,
@@ -124,6 +125,7 @@ namespace Potacad.Helpers
         {
             var pairs = ReadDxfPairs(filePath);
 
+            var faces3DList = new List<(double, double, double, double, double, double, double, double, double, double, double, double, int)>(1024);
             var lwpolylinesList = new List<(List<(double x, double y, double bulge)> vertices, bool closed, int color)>(512);
             var linearDimensionsList = new List<LinearDimensionData>(1024);
             var angularDimensionsList = new List<AngularDimensionData>(1024);
@@ -167,6 +169,7 @@ namespace Potacad.Helpers
                 if (entity == "ENDSEC") break;
 
                 // working variables
+                double z1 = 0, z2 = 0, z3 = 0, z4 = 0;
                 double x1 = 0, y1 = 0, x2 = 0, y2 = 0, x3 = 0, y3 = 0, x4 = 0, y4 = 0;
                 double cx = 0, cy = 0, r = 0, startAngle = 0, endAngle = 0, semiMajor = 0, semiMinor = 0, rotationAngle = 0;
                 double tx = 0, ty = 0, height = 0, rotation = 0;
@@ -367,10 +370,10 @@ namespace Potacad.Helpers
                 if (entity == "DIMENSION")
                 {
                     double textX = 0, textY = 0, textZ = 0, textHeight = 2.5;
-                    x1 = 0; y1 = 0; double z1 = 0;
-                    x2 = 0; y2 = 0; double z2 = 0;
-                    x3 = 0; y3 = 0; double z3 = 0;
-                    x4 = 0; y4 = 0; double z4 = 0;
+                    x1 = 0; y1 = 0;
+                    x2 = 0; y2 = 0;
+                    x3 = 0; y3 = 0;
+                    x4 = 0; y4 = 0;
                     double x5 = 0, y5 = 0, z5 = 0;
                     double x6 = 0, y6 = 0, z6 = 0;
                     rotationAngle = 0.0;
@@ -636,6 +639,21 @@ namespace Potacad.Helpers
 
                     switch (entity)
                     {
+                        case "3DFACE":
+                            if (c == "10") x1 = dval;
+                            else if (c == "20") y1 = dval;
+                            else if (c == "30") z1 = dval;
+                            else if (c == "11") x2 = dval;
+                            else if (c == "21") y2 = dval;
+                            else if (c == "31") z2 = dval;
+                            else if (c == "12") x3 = dval;
+                            else if (c == "22") y3 = dval;
+                            else if (c == "32") z3 = dval;
+                            else if (c == "13") x4 = dval;
+                            else if (c == "23") y4 = dval;
+                            else if (c == "33") z4 = dval;
+                            else if (c == "62") color = ival;
+                            break;
                         case "SOLID":
                             if (c == "10") x1 = dval;
                             else if (c == "20") y1 = dval;
@@ -710,6 +728,9 @@ namespace Potacad.Helpers
                 // finalize
                 switch (entity)
                 {
+                    case "3DFACE":
+                        faces3DList.Add((x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, color));
+                        break;
                     case "SOLID":
                         solidsList.Add((x1, y1, x2, y2, x3, y3, x4, y4, color));
                         break;
@@ -738,6 +759,7 @@ namespace Potacad.Helpers
             }
 
             return (
+                faces3DList,
                 lwpolylinesList,
                 hatchList,
                 linearDimensionsList,
@@ -832,6 +854,7 @@ namespace Potacad.Helpers
             {
                 // parse on background thread
                 var (
+                    faces3DList,
                     lwpolylinesList,
                     hatchList,
                     linearDimensionsList,
@@ -968,18 +991,26 @@ namespace Potacad.Helpers
                 }
 
                 // --- Draw HATCH entities ---
-                //if (hatchList?.Count > 0)
-                //{
-                //    await DrawEntitiesBatch(hatchList, async (batch) =>
-                //    {
-                //        foreach (var (boundaryPoints, color, patternName, isSolid) in batch)
-                //        {
-                //            await Hatch(viewer, new List<List<(double x, double y)>> { boundaryPoints }, color, patternName, isSolid);
-                //        }
+                if (hatchList?.Count > 0)
+                {
+                    //await DrawEntitiesBatch(hatchList, async (batch) =>
+                    //{
+                    //    foreach (var (boundaryPoints, color, patternName, isSolid) in batch)
+                    //    {
+                    //        await Hatch(viewer, new List<List<(double x, double y)>> { boundaryPoints }, color, patternName, isSolid);
+                    //    }
 
-                //    });
-                //}
+                    //});
+                }
 
+                // Batch and draw circles
+                if (faces3DList?.Count > 0)
+                {
+                    await DrawEntitiesBatch(faces3DList, async (batch) =>
+                    {
+                        await Faces3D(viewer, batch);
+                    });
+                }
 
                 // --- Draw Dimensions ---
                 var allDimensions = DimensionBuilder.BuildAllDimensions(linearDimensionsList, radialDimensionsList, diameterDimensionsList, angularDimensionsList);
@@ -1023,7 +1054,7 @@ namespace Potacad.Helpers
                         ResizeViewer(viewer.NativeHandle, width, height);
 
                         // ✅ reset camera to +Z, no twist, fit all
-                        PotaOCC.ViewHelper.ResetView(viewer.ViewPtr);
+                        ViewHelperPublic.ResetView(viewer.ViewPtr);
 
                         SetShaded(viewer.NativeHandle);
                     });

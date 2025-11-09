@@ -54,10 +54,14 @@
 #include "ShapeRevolver.h"
 #include "GeometryHelper.h"
 #include "RevolveHelper.h"
+
 #using <System.Windows.Forms.dll>
 using namespace System;
 using namespace System::Windows::Forms;
 using namespace PotaOCC;
+using namespace MouseHelper;
+using namespace GeometryHelper;
+using namespace ViewHelper;
 NativeViewerHandle* native;
 std::vector<Handle(AIS_InteractiveObject)> lastHilightedObjects;
 std::vector<TopoDS_Edge> SortEdgesByConnectivityRobust(const std::vector<TopoDS_Edge>& inputEdges, double tolerance)
@@ -181,7 +185,7 @@ void MouseHandler::Zoom(IntPtr viewPtr, double factor)
 {
     if (!native) return;
 
-    ViewHelper::ClearCreateEntity(native);
+    ClearCreateEntity(native);
 
     Handle(V3d_View) view = static_cast<V3d_View*>(viewPtr.ToPointer());
     view->SetZoom(factor);
@@ -292,9 +296,18 @@ void MouseHandler::OnMouseDown(IntPtr viewerHandlePtr, int x, int y, bool multip
         native->isDragging = true;  // Enable dragging mode
         return;
     }
+
+    if (native->isZoomWindowMode)
+    {
+        native->dragStartX = x;
+        native->dragStartY = y;
+        native->isDragging = true;
+        return;
+    }
+
     if (native->isDrawDimensionMode)
     {
-        gp_Pnt clickedPnt = MouseHelper::Get3DPntFromScreen(view, x, y);
+        gp_Pnt clickedPnt = Get3DPntFromScreen(view, x, y);
 
         if (native->isPickingDimensionFirstPoint)
         {
@@ -311,7 +324,7 @@ void MouseHandler::OnMouseDown(IntPtr viewerHandlePtr, int x, int y, bool multip
             native->dimPosition = clickedPnt;
 
             // Final placement
-            MouseHelper::DrawDimensionOverlay(native, view, native->dimPoint1, native->dimPoint2, native->dimPosition, true);
+            DrawDimensionOverlay(native, view, native->dimPoint1, native->dimPoint2, native->dimPosition, true);
 
             // Clean up temporary overlay
             if (!native->dimLineTemp.IsNull()) context->Remove(native->dimLineTemp, Standard_False);
@@ -345,15 +358,15 @@ void MouseHandler::OnMouseMove(IntPtr viewerHandlePtr, int x, int y, int h)
 
         if (native->isLineMode)
         {
-            MouseHelper::DrawLineOverlay(native, h);
+            DrawLineOverlay(native, h);
         }
         else if (native->isCircleMode)
         {
-            MouseHelper::DrawCircleOverlay(native, h);
+            DrawCircleOverlay(native, h);
         }
         else if (native->isRectangleMode)
         {
-            MouseHelper::DrawRectangleOverlay(native, h);
+            DrawRectangleOverlay(native, h);
         }
         else if (native->isTrimMode)
         {
@@ -361,23 +374,23 @@ void MouseHandler::OnMouseMove(IntPtr viewerHandlePtr, int x, int y, int h)
         }
         else if (native->isBooleanUnionMode || native->isBooleanCutMode || native->isBooleanIntersectMode)
         {
-            MouseHelper::HighlightHoveredShape(native, x, y, context, view);
+            HighlightHoveredShape(native, x, y, context, view);
         }
         else if (native->isEllipseMode)  // If the user is in ellipse mode
         {
-            MouseHelper::DrawEllipseOverlay(native, h);
+            DrawEllipseOverlay(native, h);
         }
         else
         {
-            MouseHelper::DrawSelectionRectangle(native);
+            DrawSelectionRectangle(native);
             view->Redraw();
         }
     }
     else if (native->isDrawDimensionMode && native->isPlacingDimension)
     {
-        gp_Pnt cursorPnt = MouseHelper::Get3DPntFromScreen(view, x, y);
+        gp_Pnt cursorPnt = Get3DPntFromScreen(view, x, y);
 
-        MouseHelper::DrawDimensionOverlay(
+        DrawDimensionOverlay(
             native,
             view,
             native->dimPoint1,
@@ -389,19 +402,26 @@ void MouseHandler::OnMouseMove(IntPtr viewerHandlePtr, int x, int y, int h)
     }
     else if (native->isMoveMode)
     {
-        MouseHelper::HandleMove(native, x, y, context, view);
+        HandleMove(native, x, y, context, view);
     }
     else if (native->isRotateMode && native->isRotating)
     {
-        MouseHelper::HandleRotate(native, x, y, context, view);
+        HandleRotate(native, x, y, context, view);
     }
     else if (native->isExtrudingActive)
     {
-        MouseHelper::HandleExtrude(native, context, view, y);
+        HandleExtrude(native, context, view, y);
+    }
+    else if (native->isZoomWindowMode && native->isDragging)
+    {
+        native->dragEndX = x;
+        native->dragEndY = y;
+        DrawSelectionRectangle(native);
+        view->Redraw();
     }
     else
     {
-        MouseHelper::UpdateHoverDetection(native, x, y, context, view);
+        UpdateHoverDetection(native, x, y, context, view);
     }
 }
 void MouseHandler::OnMouseUp(IntPtr viewerHandlePtr, int x, int y, int h, int w)
@@ -416,38 +436,38 @@ void MouseHandler::OnMouseUp(IntPtr viewerHandlePtr, int x, int y, int h, int w)
     native->dragEndY = y;
 
     if (native->isLineMode) {
-        MouseHelper::HandleLineMode(native, context, view, viewerHandlePtr, h, w, x, y);
+        HandleLineMode(native, context, view, viewerHandlePtr, h, w, x, y);
         view->Redraw();
         return;
     }
     else if (native->isCircleMode) {
-        MouseHelper::HandleCircleMode(native, context, view, viewerHandlePtr, h, w);
+        HandleCircleMode(native, context, view, viewerHandlePtr, h, w);
         view->Redraw();
         return;
     }
     else if (native->isEllipseMode) {
-        MouseHelper::HandleEllipseMode(native, context, view, viewerHandlePtr, h, w);
+        HandleEllipseMode(native, context, view, viewerHandlePtr, h, w);
         view->Redraw();
         return;
     }
     else if (native->isRectangleMode) {
-        MouseHelper::HandleRectangleMode(native, context, view, viewerHandlePtr, h, w);
+        HandleRectangleMode(native, context, view, viewerHandlePtr, h, w);
         view->Redraw();
         return;
     }
     else if (native->isTrimMode) {
-        MouseHelper::HandleTrimMode(native, context);
+        HandleTrimMode(native, context);
         view->Redraw();
         return;
     }
     else if (native->isRadiusMode) {
-        MouseHelper::HandleRadiusMode(native, context);
+        HandleRadiusMode(native, context);
     }
     else if (native->isExtrudingActive) {
-        MouseHelper::HandleExtrudingMode(native, context, view);
+        HandleExtrudingMode(native, context, view);
     }
     else if (native->isBooleanUnionMode || native->isBooleanCutMode || native->isBooleanIntersectMode) {
-        MouseHelper::HandleBooleanMode(native, context, view, x, y);
+        HandleBooleanMode(native, context, view, x, y);
         view->Redraw();
         return;
     }
@@ -459,15 +479,20 @@ void MouseHandler::OnMouseUp(IntPtr viewerHandlePtr, int x, int y, int h, int w)
         native->isRotating = false;
         native->rotatingObject.Nullify();
     }
+    else if (native->isZoomWindowMode && native->isDragging)
+    {
+        HandleZoomWindow(native, view);
+        return;
+    }
     else if (native->isDragging && native->dragEndX != 0) {
-        Boolean handle = GeometryHelper::PerformRectangleSelection(native, context, view, h, w, y);
+        Boolean handle = PerformRectangleSelection(native, context, view, h, w, y);
     }
     else {
-        MouseHelper::HandleObjectDetection(context, view, x, y);
+        HandleObjectDetection(context, view, x, y);
     }
-
-    MouseHelper::ResetDragState(native);
-    MouseHelper::ClearRubberBand(native);
+    ApplyLocalTransformationToShape(native, context);
+    ResetDragState(native);
+    ClearRubberBand(native);
 
     view->Redraw();
 }
@@ -478,80 +503,24 @@ void MouseHandler::OnKeyUp(IntPtr viewerHandlePtr, char key)
 {
     native = reinterpret_cast<NativeViewerHandle*>(viewerHandlePtr.ToPointer());
     if (!native) return;
-
-    // Assuming context is passed or available globally in the class
-    Handle(AIS_InteractiveContext) context = native->context;
-    ViewHelper::ClearCreateEntity(native);
-    if (key == 'L' || key == 'l') {
-        native->isLineMode = true;
-    }
-    else if (key == 'B' || key == 'b') {
-        native->isBooleanMode = true;
-    }
-    else if (key == 'C' || key == 'c') {
-        native->isCircleMode = true;
-    }
-    else if (key == 'D' || key == 'd') {
-        native->isBooleanCutMode = true;
-    }
-    else if (key == 'E' || key == 'e') {
-        native->isEllipseMode = true;
-    }
-    else if (key == 'F' || key == 'f') {
-        native->isRadiusMode = true;
-    }
-    else if (key == 'I' || key == 'i') {
-        native->isBooleanIntersectMode = true;
-    }
-    else if (key == 'W' || key == 'w') {
-        native->isRevolveMode = true;
-    }
-    else if (key == 'M' || key == 'm') {
-        native->isMoveMode = true;
-    }
-    else if (key == 'O' || key == 'o') {
-        native->isDrawDimensionMode = true;
-        native->isPickingDimensionFirstPoint = true;
-    }
-    else if (key == 'P' || key == 'p') {
-        native->isMateAlignmentMode = true;
-    }
-    else if (key == 'R' || key == 'r') {
-        native->isRotateMode = true;
-    }
-    else if (key == 'S' || key == 's') {
-        native->isExtrudeMode = true;
-    }
-    else if (key == 'T' || key == 't') {
-        native->isTrimMode = true;
-    }
-    else if (key == 'U' || key == 'u') {
-        native->isBooleanUnionMode = true;
-    }
-    else if (key == 'Q' || key == 'q') {
-        native->isRectangleMode = true;
-    }
-    else if (key == 27)
-    {
-        ViewHelper::ClearCreateEntity(native);
-    }
+    HandleKeyMode(native, key);
 }
 void MouseHandler::HandleMouseDownAction(Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, int x, int y, bool multipleselect)
 {
     switch (MouseHandler::GetCurrentMode())
     {
     case MouseMode::MateAlignment:
-        MouseHelper::HandleMateModeMouseDown(native, context, view, x, y);
+        HandleMateModeMouseDown(native, context, view, x, y);
         break;
     case MouseMode::Move:
-        MouseHelper::HandleMoveModeMouseDown(native, context, view, x, y);
+        HandleMoveModeMouseDown(native, context, view, x, y);
         break;
     case MouseMode::Rotate:
-        MouseHelper::HandleRotateModeMouseDown(native, context, view, x, y);
+        HandleRotateModeMouseDown(native, context, view, x, y);
         break;
     case MouseMode::Default:
     default:
-        MouseHelper::HandleDefaultMouseDown(native, context, view, x, y, multipleselect, lastHilightedObjects);
+        HandleDefaultMouseDown(native, context, view, x, y, multipleselect, lastHilightedObjects);
         break;
     }
 }

@@ -9,162 +9,180 @@
 #include <gp_Pnt.hxx>
 
 using namespace PotaOCC;
-
-// Define the Marker class outside of the function to avoid the "local class definition" error
-class Marker : public AIS_InteractiveObject
+namespace PotaOCC
 {
-public:
-    double mx, my, mz;
-    Marker(double x, double y, double z) : mx(x), my(y), mz(z) {}
-
-    virtual void Compute(const Handle(PrsMgr_PresentationManager3d)& pm,
-        const Handle(Prs3d_Presentation)& pres,
-        const Standard_Integer mode) override
+    void ViewHelperPublic::ResetView(System::IntPtr viewPtr)
     {
-        pres->Clear();
+        if (viewPtr == System::IntPtr::Zero) return;
+        Handle(V3d_View) view =
+            reinterpret_cast<V3d_View*>(viewPtr.ToPointer());
 
-        const Standard_Real half = 3.0; // Length of the marker lines
+        if (view.IsNull()) return;
 
-        // Each pair of vertices defines a line segment (so 4 vertices = 2 segments)
-        Handle(Graphic3d_ArrayOfSegments) segs = new Graphic3d_ArrayOfSegments(4);
-
-        // Horizontal line (along X axis)
-        segs->AddVertex(gp_Pnt(mx - half, my, mz));
-        segs->AddVertex(gp_Pnt(mx + half, my, mz));
-
-        // Vertical line (along Y axis)
-        segs->AddVertex(gp_Pnt(mx, my - half, mz));
-        segs->AddVertex(gp_Pnt(mx, my + half, mz));
-
-        Handle(Graphic3d_Group) group = pres->CurrentGroup();
-        Handle(Prs3d_LineAspect) aspect = new Prs3d_LineAspect(Quantity_NOC_RED, Aspect_TOL_SOLID, 1.0);
-        group->SetPrimitivesAspect(aspect->Aspect());  // Set line style for the marker
-        group->AddPrimitiveArray(segs);  // Add the lines to the group
+        view->SetProj(V3d_Zpos);
+        view->SetTwist(0.0);
+        view->FitAll();
+        view->Redraw();
     }
-
-    virtual void ComputeSelection(const Handle(SelectMgr_Selection)&,
-        const Standard_Integer) override
+    namespace ViewHelper
     {
-        // No selection needed
-    }
-};
+        // Define the Marker class outside of the function to avoid the "local class definition" error
+        class Marker : public AIS_InteractiveObject
+        {
+        public:
+            double mx, my, mz;
+            Marker(double x, double y, double z) : mx(x), my(y), mz(z) {}
 
-void ViewHelper::ResetView(System::IntPtr viewPtr)
-{
-    if (viewPtr == System::IntPtr::Zero) return;
-    Handle(V3d_View) view =
-        reinterpret_cast<V3d_View*>(viewPtr.ToPointer());
+            virtual void Compute(const Handle(PrsMgr_PresentationManager3d)& pm,
+                const Handle(Prs3d_Presentation)& pres,
+                const Standard_Integer mode) override
+            {
+                pres->Clear();
 
-    if (view.IsNull()) return;
+                const Standard_Real half = 3.0; // Length of the marker lines
 
-    view->SetProj(V3d_Zpos);
-    view->SetTwist(0.0);
-    view->FitAll();
-    view->Redraw();
-}
+                // Each pair of vertices defines a line segment (so 4 vertices = 2 segments)
+                Handle(Graphic3d_ArrayOfSegments) segs = new Graphic3d_ArrayOfSegments(4);
 
-// Clears any entities like lines, circles, and resets flags
-void ViewHelper::ClearCreateEntity(NativeViewerHandle* native)
-{
-    // Dismiss the overlay line (if it exists)
-    if (!native->lineOverlay.IsNull())
-    {
-        native->context->Erase(native->lineOverlay, Standard_False);  // Remove the overlay
-        native->lineOverlay.Nullify();  // Nullify the handle to clear it
-    }
+                // Horizontal line (along X axis)
+                segs->AddVertex(gp_Pnt(mx - half, my, mz));
+                segs->AddVertex(gp_Pnt(mx + half, my, mz));
 
-    // Dismiss the overlay circle (if it exists)
-    if (!native->circleOverlay.IsNull())
-    {
-        native->context->Erase(native->circleOverlay, Standard_False);  // Remove the overlay
-        native->circleOverlay.Nullify();  // Nullify the handle to clear it
-    }
+                // Vertical line (along Y axis)
+                segs->AddVertex(gp_Pnt(mx, my - half, mz));
+                segs->AddVertex(gp_Pnt(mx, my + half, mz));
 
-    if (!native->ellipseOverlay.IsNull())
-    {
-        native->context->Erase(native->ellipseOverlay, Standard_False);  // Remove the overlay
-        native->ellipseOverlay.Nullify();  // Nullify the handle to clear it
-    }
+                Handle(Graphic3d_Group) group = pres->CurrentGroup();
+                Handle(Prs3d_LineAspect) aspect = new Prs3d_LineAspect(Quantity_NOC_RED, Aspect_TOL_SOLID, 1.0);
+                group->SetPrimitivesAspect(aspect->Aspect());  // Set line style for the marker
+                group->AddPrimitiveArray(segs);  // Add the lines to the group
+            }
 
-    if (!native->rectangleOverlay.IsNull())
-    {
-        native->context->Erase(native->rectangleOverlay, Standard_False);  // Remove the overlay
-        native->rectangleOverlay.Nullify();  // Nullify the handle to clear it
-    }
+            virtual void ComputeSelection(const Handle(SelectMgr_Selection)&,
+                const Standard_Integer) override
+            {
+                // No selection needed
+            }
+        };
 
-    // Reset any other relevant flags or data if necessary
-    native->isDragging = false;  // Stop dragging
-    native->dragEndX = native->dragStartX = 0;  // Reset drag points
-    native->dragEndY = native->dragStartY = 0;  // Reset drag points
+        // Clears any entities like lines, circles, and resets flags
+        void ClearCreateEntity(NativeViewerHandle* native)
+        {
+            // Dismiss the overlay line (if it exists)
+            if (!native->lineOverlay.IsNull())
+            {
+                native->context->Erase(native->lineOverlay, Standard_False);  // Remove the overlay
+                native->lineOverlay.Nullify();  // Nullify the handle to clear it
+            }
 
-    native->isLineMode = false;
-    native->isCircleMode = false;
-    native->isRectangleMode = false;
-    native->isEllipseMode = false;
-    native->isTrimMode = false;
-    native->isExtrudeMode = false;
-    native->isRadiusMode = false;
-    native->isEnCloseMode = false;
-    native->isSelecting = false;
-    native->isBooleanMode = false;
-    native->isBooleanUnionMode = false;
-    native->isBooleanCutMode = false;
-    native->isBooleanIntersectMode = false;
-    native->isMoveMode = false;
-    native->isMoving = false;
-    native->isRotateMode = false;
-    native->isRotating = false;
-    native->isMateAlignmentMode = false;
-    native->firstMateFace = nullptr;
+            // Dismiss the overlay circle (if it exists)
+            if (!native->circleOverlay.IsNull())
+            {
+                native->context->Erase(native->circleOverlay, Standard_False);  // Remove the overlay
+                native->circleOverlay.Nullify();  // Nullify the handle to clear it
+            }
 
-    native->isRevolveMode = false;
-    native->isRevolveAxisSet = false;
-    native->revolveAxis;
-    native->isCenterLineSet = false;
-    native->revolveAxisObj.Nullify();
-    native->revolveAxisShape.Nullify();
+            if (!native->ellipseOverlay.IsNull())
+            {
+                native->context->Erase(native->ellipseOverlay, Standard_False);  // Remove the overlay
+                native->ellipseOverlay.Nullify();  // Nullify the handle to clear it
+            }
 
-    native->isExtrudingActive = false;
-    native->extrudePreviewShape.Nullify();
-    native->activeWire.Nullify();
+            if (!native->rectangleOverlay.IsNull())
+            {
+                native->context->Erase(native->rectangleOverlay, Standard_False);  // Remove the overlay
+                native->rectangleOverlay.Nullify();  // Nullify the handle to clear it
+            }
 
-    native->isDrawDimensionMode = false;
-    native->isPickingDimensionFirstPoint = false;
-    native->isPlacingDimension = false;
-}
+            if (!native->highlightedFace.IsNull())
+            {
+                native->context->Remove(native->highlightedFace, Standard_False);
+                native->highlightedFace.Nullify();
+            }
+            if (!native->hoverHighlightedFace.IsNull())
+            {
+                native->context->Erase(native->hoverHighlightedFace, Standard_False);
+                native->hoverHighlightedFace.Nullify();
+            }
 
-// Draw a center marker at a given point (x, y, z) in the 3D view
-void ViewHelper::DrawCenterMarker(NativeViewerHandle* native, double x, double y, double z)
-{
-    auto context = native->context;
-    if (context.IsNull()) return;
+            // Reset any other relevant flags or data if necessary
+            native->isDragging = false;  // Stop dragging
+            native->dragEndX = native->dragStartX = 0;  // Reset drag points
+            native->dragEndY = native->dragStartY = 0;  // Reset drag points
 
-    // Remove existing marker if any
-    if (!native->centerOverlay.IsNull())
-    {
-        context->Remove(native->centerOverlay, Standard_False);
-        native->centerOverlay.Nullify();
-    }
+            native->isLineMode = false;
+            native->isCircleMode = false;
+            native->isRectangleMode = false;
+            native->isEllipseMode = false;
+            native->isTrimMode = false;
+            native->isExtrudeMode = false;
+            native->isRadiusMode = false;
+            native->isEnCloseMode = false;
+            native->isSelecting = false;
+            native->isBooleanMode = false;
+            native->isBooleanUnionMode = false;
+            native->isBooleanCutMode = false;
+            native->isBooleanIntersectMode = false;
+            native->isMoveMode = false;
+            native->isMoving = false;
+            native->isRotateMode = false;
+            native->isRotating = false;
+            native->isMateAlignmentMode = false;
+            native->firstMateFace = nullptr;
 
-    // Instantiate the marker with 3D coordinates and display it
-    Handle(AIS_InteractiveObject) marker = new Marker(x, y, z);
-    native->centerOverlay = marker;
-    context->Display(marker, Standard_False);  // Display without refreshing
-    context->Redisplay(marker, Standard_True); // Redisplay to show the marker immediately
-}
+            native->isRevolveMode = false;
+            native->isRevolveAxisSet = false;
+            native->revolveAxis;
+            native->isCenterLineSet = false;
+            native->revolveAxisObj.Nullify();
+            native->revolveAxisShape.Nullify();
 
-// Clears the center marker
-void ViewHelper::ClearCenterMarker(NativeViewerHandle* native)
-{
-    if (native && !native->centerOverlay.IsNull())
-    {
-        // Remove the existing marker from the context
-        native->context->Remove(native->centerOverlay, Standard_False);
+            native->isExtrudingActive = false;
+            native->extrudePreviewShape.Nullify();
+            native->activeWire.Nullify();
 
-        // Nullify the centerOverlay to avoid further references to the removed object
-        native->centerOverlay.Nullify();
+            native->isDrawDimensionMode = false;
+            native->isPickingDimensionFirstPoint = false;
+            native->isPlacingDimension = false;
 
-        // Redisplay the context to update the view
-        native->view->Redraw();
+            native->isZoomWindowMode = false;
+        }
+
+        // Draw a center marker at a given point (x, y, z) in the 3D view
+        void DrawCenterMarker(NativeViewerHandle* native, double x, double y, double z)
+        {
+            auto context = native->context;
+            if (context.IsNull()) return;
+
+            // Remove existing marker if any
+            if (!native->centerOverlay.IsNull())
+            {
+                context->Remove(native->centerOverlay, Standard_False);
+                native->centerOverlay.Nullify();
+            }
+
+            // Instantiate the marker with 3D coordinates and display it
+            Handle(AIS_InteractiveObject) marker = new Marker(x, y, z);
+            native->centerOverlay = marker;
+            context->Display(marker, Standard_False);  // Display without refreshing
+            context->Redisplay(marker, Standard_True); // Redisplay to show the marker immediately
+        }
+
+        // Clears the center marker
+        void ClearCenterMarker(NativeViewerHandle* native)
+        {
+            if (native && !native->centerOverlay.IsNull())
+            {
+                // Remove the existing marker from the context
+                native->context->Remove(native->centerOverlay, Standard_False);
+
+                // Nullify the centerOverlay to avoid further references to the removed object
+                native->centerOverlay.Nullify();
+
+                // Redisplay the context to update the view
+                native->view->Redraw();
+            }
+        }
+
     }
 }

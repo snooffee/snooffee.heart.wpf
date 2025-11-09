@@ -144,7 +144,9 @@
     <ClInclude Include="DimensionDrawer.h" />
     <ClInclude Include="DimensionHelper.h" />
     <ClInclude Include="EllipseDrawer.h" />
+    <ClInclude Include="Faces3DDrawer.h" />
     <ClInclude Include="GeometryHelper.h" />
+    <ClInclude Include="HatchDrawer.h" />
     <ClInclude Include="LineDrawer.h" />
     <ClInclude Include="LwPolylineDrawer.h" />
     <ClInclude Include="MateHelper.h" />
@@ -177,7 +179,9 @@
     <ClCompile Include="DimensionDrawer.cpp" />
     <ClCompile Include="DimensionHelper.cpp" />
     <ClCompile Include="EllipseDrawer.cpp" />
+    <ClCompile Include="Faces3DDrawer.cpp" />
     <ClCompile Include="GeometryHelper.cpp" />
+    <ClCompile Include="HatchDrawer.cpp" />
     <ClCompile Include="LineDrawer.cpp" />
     <ClCompile Include="LwPolylineDrawer.cpp" />
     <ClCompile Include="MateHelper.cpp" />

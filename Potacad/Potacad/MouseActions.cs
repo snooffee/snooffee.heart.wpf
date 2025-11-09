@@ -65,13 +65,17 @@ namespace Potacad
         //private static string GetDragSetting(MouseButtons button, bool ctrl, bool shift, EnvSousahouhouModel potato)
         private static string GetDragSetting(MouseButtons button, bool ctrl, bool shift)
         {
-            if (button == MouseButtons.Left)
+            if (button == MouseButtons.Left && !ctrl)
             {
                 return "範囲選択";
             }
             else if (button == MouseButtons.Right)
             {
                 return "平行移動";
+            }
+            else if (button == MouseButtons.Left && ctrl)
+            {
+                return "回転";
             }
             else // Middle
             {
@@ -239,10 +243,16 @@ namespace Potacad
                 mouseState.LastPos = e.Location;
                 bool ctrl = (Control.ModifierKeys & Keys.Control) != 0;
                 bool shift = (Control.ModifierKeys & Keys.Shift) != 0;
-
                 SetMouseAction(viewer, e.Button, ctrl, shift, mouseState);
 
-                if (IsLeftButtonClick(e.Button)) OnMouseDown(viewer.NativeHandle, e.X, e.Y, IsSelecting(e.Button));
+                if (IsLeftButtonClick(e.Button))
+                {
+                    OnMouseDown(viewer.NativeHandle, e.X, e.Y, IsSelecting(e.Button));
+
+                    // ✅ Start rotation anchor
+                    if (mouseState.LeftRotating)
+                        StartRotation(viewer.ViewPtr, e.X, e.Y);
+                }
             };
 
             panel.MouseMove += (_, e) =>
@@ -327,6 +337,7 @@ namespace Potacad
                     Keys.U => 'U',
                     Keys.Q => 'Q',
                     Keys.W => 'W',
+                    Keys.Z => 'Z',
                     Keys.Escape => (char)27,  // Escape key
                     _ => '\0' // Default case if no match
                 };
