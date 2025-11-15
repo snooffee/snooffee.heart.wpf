@@ -9,8 +9,8 @@ namespace PotaOCC
     public ref class CircleDrawer
     {
     public:
-        static TopoDS_Edge CircleDrawer::DrawCircle(Handle(V3d_View) view, IntPtr viewerHandlePtr, double dragStartX, double dragStartY, double dragEndX, double dragEndY, int h, int w);
-
+        //static TopoDS_Edge CircleDrawer::DrawCircle(Handle(V3d_View) view, IntPtr viewerHandlePtr, double dragStartX, double dragStartY, double dragEndX, double dragEndY, int h, int w);
+        static TopoDS_Edge DrawCircle(NativeViewerHandle* native, Handle(V3d_View) view, IntPtr viewerHandlePtr, double dragStartX, double dragStartY, double dragEndX, double dragEndY, int h, int w, int x, int y);
         static array<int>^ DrawCircleBatch(
             IntPtr ctxPtr,
             array<double>^ x, array<double>^ y, array<double>^ z,

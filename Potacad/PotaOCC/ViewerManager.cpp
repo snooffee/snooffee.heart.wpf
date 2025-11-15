@@ -63,13 +63,13 @@ ViewerHandle^ ViewerManager::CreateViewer(IntPtr hwnd, int width, int height, Co
     if (!window->IsMapped()) window->Map();
 
     Handle(AIS_InteractiveContext) context = new AIS_InteractiveContext(viewer);
-    view->SetBackgroundColor(Quantity_NOC_BLACK);
+    view->SetBackgroundColor(Quantity_NOC_WHITE);
 
     viewer->SetDefaultLights();
     viewer->SetLightOn();
     //viewer->ActivateGrid(Aspect_GT_Rectangular, Aspect_GDM_Lines); // Optional
 
-    view->TriedronDisplay(Aspect_TOTP_RIGHT_UPPER, Quantity_NOC_WHITE, 0.08, V3d_ZBUFFER);
+    view->TriedronDisplay(Aspect_TOTP_RIGHT_UPPER, Quantity_NOC_BLACK, 0.08, V3d_ZBUFFER);
     //view->SetProj(V3d_Zpos);
     view->FitAll();
 

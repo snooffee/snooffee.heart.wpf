@@ -113,7 +113,7 @@ array<int>^ HatchDrawer::DrawHatchBatch(
 
             // Compute bounding box for outer wire
             Bnd_Box bbox;
-            BRepBndLib::Add(outerWire, bbox);
+            //BRepBndLib::Add(outerWire, bbox);
             Standard_Real xmin, ymin, zmin, xmax, ymax, zmax;
             bbox.Get(xmin, ymin, zmin, xmax, ymax, zmax);
 

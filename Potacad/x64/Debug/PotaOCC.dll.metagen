@@ -24,7 +24,7 @@ Class PotaOCC.ByblockDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldIn
 Class PotaOCC.CircleDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
   Methods:
-    DrawCircle(TopoDS_Edge*, handle<V3d_View>*, IntPtr, Double, Double, Double, Double, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    DrawCircle(TopoDS_Edge*, NativeViewerHandle*, handle<V3d_View>*, IntPtr, Double, Double, Double, Double, Int32, Int32, Int32, Int32): PrivateScope, Public, Static, HideBySig
     DrawCircleBatch(IntPtr, Double[], Double[], Double[], Double[], String[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
     MakeCircle(Double, Double, Double, Double): PrivateScope, Public, Static, HideBySig
 Class PotaOCC.ShapeDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
@@ -42,9 +42,10 @@ Class PotaOCC.ShapeDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
     UpdateSelection(IntPtr, Int32, Int32): PrivateScope, Public, Static, HideBySig
     ResetView(IntPtr): PrivateScope, Public, Static, HideBySig
     ScreenToWorld(gp_Pnt*, handle<V3d_View>*, Double, Double): PrivateScope, Public, Static, HideBySig
+    ScreenToPlane(gp_Pnt*, handle<V3d_View>*, Double, Double): PrivateScope, Public, Static, HideBySig
     CreateEdgeSafe(TopoDS_Edge*, gp_Pnt* IsImplicitlyDereferenced, gp_Pnt* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
     CreateCircleSafe(TopoDS_Edge*, gp_Circ* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
-    CreateEllipseSafe(TopoDS_Edge*, gp_Elips* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
+    CreateEllipseSafe(TopoDS_Wire*, gp_Pnt* IsImplicitlyDereferenced, Double, Double, Int32): PrivateScope, Public, Static, HideBySig
     SetupOverlay(handle<AIS_InteractiveObject>* IsImplicitlyDereferenced, Quantity_NameOfColor IsConst, Double): PrivateScope, Public, Static, HideBySig
     eraseLineByDetectedIO(handle<AIS_InteractiveObject>*, vector<opencascade::handle<AIS_Shape>\,std::allocator<opencascade::handle<AIS_Shape> > >* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
     findIntersectionPoints(gp_Pnt* IsImplicitlyDereferenced, handle<Geom_Curve>* IsImplicitlyDereferenced, Double, Double, handle<AIS_InteractiveObject>*, handle<AIS_InteractiveContext>*, vector<opencascade::handle<AIS_Shape>\,std::allocator<opencascade::handle<AIS_Shape> > >* IsImplicitlyDereferenced): PrivateScope, Public, Static, HideBySig
@@ -69,7 +70,7 @@ Class PotaOCC.EllipseDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldIn
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
   Methods:
     DrawEllipseBatch(IntPtr, Double[], Double[], Double[], Double[], Double[], Double[], String[], Int32[], Int32[], Int32[], Double[]): PrivateScope, Public, Static, HideBySig
-    DrawEllipse(TopoDS_Edge*, handle<V3d_View>*, IntPtr, Double, Double, Double, Double, Int32, Int32): PrivateScope, Public, Static, HideBySig
+    DrawEllipse(TopoDS_Wire*, NativeViewerHandle*, handle<V3d_View>*, IntPtr, Double, Double, Double, Double, Int32, Int32, Int32, Int32): PrivateScope, Public, Static, HideBySig
 Class PotaOCC.Faces3DDrawer: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
   Methods:

@@ -1,7 +1,5 @@
 ﻿#pragma once
-
 #include "NativeViewerHandle.h"
-
 namespace PotaOCC
 {
     struct NativeViewerHandle;

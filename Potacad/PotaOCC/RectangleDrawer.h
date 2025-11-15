@@ -19,5 +19,5 @@ namespace PotaOCC {
 class RectangleDrawer
 {
 public:
-    static Handle(AIS_Shape) DrawRectangle(Handle(AIS_InteractiveContext) context, PotaOCC::NativeViewerHandle* native, Handle(V3d_View) view, const Quantity_Color& color = Quantity_NOC_RED, double transparency = 0.2);
+    static Handle(AIS_Shape) DrawRectangle(Handle(AIS_InteractiveContext) context, PotaOCC::NativeViewerHandle* native, Handle(V3d_View) view);
 };

@@ -22,6 +22,7 @@
 #include <BRepAdaptor_Curve.hxx>
 #include "MouseCursor.h"
 using namespace PotaOCC::ViewHelper;
+using namespace PotaOCC::ViewHelper;
 using namespace PotaOCC;
 namespace PotaOCC {
     namespace GeometryHelper

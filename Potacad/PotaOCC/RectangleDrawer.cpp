@@ -2,24 +2,22 @@
 #include "RectangleDrawer.h"
 #include "ShapeDrawer.h"
 #include "NativeViewerHandle.h"
-
+#include "MouseHelper.h"
+using namespace PotaOCC::MouseHelper;
 using namespace PotaOCC;
-
 Handle(AIS_Shape) RectangleDrawer::DrawRectangle(
     Handle(AIS_InteractiveContext) context,
     NativeViewerHandle* native,
-    Handle(V3d_View) view,
-    const Quantity_Color& color,
-    double transparency)
+    Handle(V3d_View) view)
 {
-    // 🚫 Safety check: null pointers
+    // Safety check
     if (context.IsNull() || view.IsNull() || native == nullptr)
     {
         std::cerr << "⚠️ Invalid input: context, view, or native is null." << std::endl;
         return nullptr;
     }
 
-    // 🚫 Ensure drag points are valid
+    // Ensure drag points are valid
     if (native->dragStartX == native->dragEndX &&
         native->dragStartY == native->dragEndY)
     {
@@ -27,37 +25,53 @@ Handle(AIS_Shape) RectangleDrawer::DrawRectangle(
         return nullptr;
     }
 
-    // ✅ Convert screen to world coordinates safely
-    gp_Pnt p1, p2;
-    try
+    gp_Pnt p1, p2, p3, p4;
+
+    if (native->isPlaneMode)
     {
+        // --- Compute rectangle points on the detected plane ---
+        gp_Pnt startPnt = native->dragStartPoint; // 3D point on plane at mouse down
+        gp_Pnt endPnt = Get3DPntOnPlane(view,
+            native->planeOrigin,
+            native->planeNormal,
+            native->dragEndX,
+            native->dragEndY);
+
+        // Use plane coordinate system: we need two axes on the plane
+        gp_Dir planeNormal = native->planeNormal;
+        gp_Ax2 planeAxis(native->planeOrigin, planeNormal);
+
+        // Compute two orthogonal directions on plane
+        gp_Dir uDir = planeAxis.XDirection();
+        gp_Dir vDir = planeAxis.YDirection();
+
+        // Project drag vector onto plane axes
+        gp_Vec dragVec(startPnt, endPnt);
+        double u = dragVec.Dot(gp_Vec(uDir));
+        double v = dragVec.Dot(gp_Vec(vDir));
+
+        // Compute rectangle 4 corners in 3D
+        p1 = startPnt;
+        p2 = startPnt.Translated(gp_Vec(uDir) * u);
+        p3 = startPnt.Translated(gp_Vec(uDir) * u + gp_Vec(vDir) * v);
+        p4 = startPnt.Translated(gp_Vec(vDir) * v);
+    }
+    else
+    {
+        // Screen-plane fallback (XY)
         p1 = ShapeDrawer::ScreenToWorld(view, native->dragStartX, native->dragStartY);
-        p2 = ShapeDrawer::ScreenToWorld(view, native->dragEndX, native->dragEndY);
-    }
-    catch (Standard_Failure& e)
-    {
-        std::cerr << "❌ ScreenToWorld failed: " << e.GetMessageString() << std::endl;
-        return nullptr;
+        p3 = ShapeDrawer::ScreenToWorld(view, native->dragEndX, native->dragEndY);
+        p2 = gp_Pnt(p3.X(), p1.Y(), 0.0);
+        p4 = gp_Pnt(p1.X(), p3.Y(), 0.0);
     }
 
-    // 🚫 Prevent zero-size rectangle
-    if (Abs(p1.X() - p2.X()) < Precision::Confusion() ||
-        Abs(p1.Y() - p2.Y()) < Precision::Confusion())
-    {
-        std::cerr << "⚠️ Rectangle has zero width or height — skipped." << std::endl;
-        return nullptr;
-    }
-
-    // ✅ Create points in order
-    gp_Pnt p3(p2.X(), p1.Y(), 0.0);
-    gp_Pnt p4(p1.X(), p2.Y(), 0.0);
-
+    // Build wire
     TopoDS_Wire wire;
     try
     {
-        TopoDS_Edge e1 = BRepBuilderAPI_MakeEdge(p1, p3);
-        TopoDS_Edge e2 = BRepBuilderAPI_MakeEdge(p3, p2);
-        TopoDS_Edge e3 = BRepBuilderAPI_MakeEdge(p2, p4);
+        TopoDS_Edge e1 = BRepBuilderAPI_MakeEdge(p1, p2);
+        TopoDS_Edge e2 = BRepBuilderAPI_MakeEdge(p2, p3);
+        TopoDS_Edge e3 = BRepBuilderAPI_MakeEdge(p3, p4);
         TopoDS_Edge e4 = BRepBuilderAPI_MakeEdge(p4, p1);
         wire = BRepBuilderAPI_MakeWire(e1, e2, e3, e4);
     }
@@ -73,7 +87,7 @@ Handle(AIS_Shape) RectangleDrawer::DrawRectangle(
         return nullptr;
     }
 
-    // ✅ Create face
+    // Build face
     TopoDS_Face face;
     try
     {
@@ -91,12 +105,12 @@ Handle(AIS_Shape) RectangleDrawer::DrawRectangle(
         return nullptr;
     }
 
-    // ✅ Create AIS shape for visualization
+    // Create AIS_Shape
     Handle(AIS_Shape) aisRect = new AIS_Shape(face);
-    aisRect->SetColor(color);
-    aisRect->SetTransparency(transparency);
+    aisRect->SetColor(Quantity_NOC_RED);
+    aisRect->SetTransparency(0.2);
 
-    // ✅ Remove previous overlay if exists
+    // Remove previous overlay
     if (!native->rectangleOverlay.IsNull())
     {
         try

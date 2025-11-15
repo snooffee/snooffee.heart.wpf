@@ -54,6 +54,11 @@
 #include "ShapeRevolver.h"
 #include "GeometryHelper.h"
 #include "RevolveHelper.h"
+#include <BRepBuilderAPI_MakeVertex.hxx>
+#include <BRepBuilderAPI_MakePolygon.hxx>
+#include <Geom_Plane.hxx>
+#include <Geom_CartesianPoint.hxx>
+#include <gp_Pln.hxx>
 
 #using <System.Windows.Forms.dll>
 using namespace System;
@@ -262,6 +267,7 @@ void MouseHandler::ResetView(IntPtr viewerHandlePtr, int x, int y)
     native->view->FitAll();
     native->view->Redraw();
 }
+
 void MouseHandler::OnMouseDown(IntPtr viewerHandlePtr, int x, int y, bool multipleselect)
 {
     native = reinterpret_cast<NativeViewerHandle*>(viewerHandlePtr.ToPointer());
@@ -277,7 +283,6 @@ void MouseHandler::OnMouseDown(IntPtr viewerHandlePtr, int x, int y, bool multip
         std::cout << "AIS_InteractiveContext or V3d_View is null!" << std::endl;
         return;
     }
-
     if (native->isRevolveMode)
     {
         if (!native->isRevolveAxisSet)
@@ -288,15 +293,6 @@ void MouseHandler::OnMouseDown(IntPtr viewerHandlePtr, int x, int y, bool multip
                 return; // Failed to set axis — abort action
         }
     }
-    if (native->isEllipseMode)
-    {
-        // Record the start point of the ellipse
-        native->dragStartX = x;
-        native->dragStartY = y;
-        native->isDragging = true;  // Enable dragging mode
-        return;
-    }
-
     if (native->isZoomWindowMode)
     {
         native->dragStartX = x;
@@ -304,7 +300,6 @@ void MouseHandler::OnMouseDown(IntPtr viewerHandlePtr, int x, int y, bool multip
         native->isDragging = true;
         return;
     }
-
     if (native->isDrawDimensionMode)
     {
         gp_Pnt clickedPnt = Get3DPntFromScreen(view, x, y);
@@ -340,6 +335,12 @@ void MouseHandler::OnMouseDown(IntPtr viewerHandlePtr, int x, int y, bool multip
         view->Redraw();
         return;
     }
+    if (native->isCircleMode || native->isRectangleMode || native->isEllipseMode)
+    {
+        HandleShapeSelection(native, context, view, x, y);
+        view->Redraw();
+        return;
+    }
     HandleMouseDownAction(context, view, x, y, multipleselect);
 }
 void MouseHandler::OnMouseMove(IntPtr viewerHandlePtr, int x, int y, int h)
@@ -362,11 +363,13 @@ void MouseHandler::OnMouseMove(IntPtr viewerHandlePtr, int x, int y, int h)
         }
         else if (native->isCircleMode)
         {
-            DrawCircleOverlay(native, h);
+            DrawCircleOverlay(native, view, h, x, y);
+            view->Redraw();
         }
         else if (native->isRectangleMode)
         {
-            DrawRectangleOverlay(native, h);
+            DrawRectangleOverlay(native, view, h, x, y);
+            view->Redraw();
         }
         else if (native->isTrimMode)
         {
@@ -376,9 +379,10 @@ void MouseHandler::OnMouseMove(IntPtr viewerHandlePtr, int x, int y, int h)
         {
             HighlightHoveredShape(native, x, y, context, view);
         }
-        else if (native->isEllipseMode)  // If the user is in ellipse mode
+        else if (native->isEllipseMode)
         {
-            DrawEllipseOverlay(native, h);
+            DrawEllipseOverlay(native, view, h, x, y);
+            view->Redraw();
         }
         else
         {
@@ -441,17 +445,17 @@ void MouseHandler::OnMouseUp(IntPtr viewerHandlePtr, int x, int y, int h, int w)
         return;
     }
     else if (native->isCircleMode) {
-        HandleCircleMode(native, context, view, viewerHandlePtr, h, w);
+        HandleCircleMode(native, context, view, viewerHandlePtr, h, w, x, y);
         view->Redraw();
         return;
     }
     else if (native->isEllipseMode) {
-        HandleEllipseMode(native, context, view, viewerHandlePtr, h, w);
+        HandleEllipseMode(native, context, view, viewerHandlePtr, h, w, x, y);
         view->Redraw();
         return;
     }
     else if (native->isRectangleMode) {
-        HandleRectangleMode(native, context, view, viewerHandlePtr, h, w);
+        HandleRectangleMode(native, context, view, viewerHandlePtr, h, w, x, y);
         view->Redraw();
         return;
     }
@@ -496,15 +500,8 @@ void MouseHandler::OnMouseUp(IntPtr viewerHandlePtr, int x, int y, int h, int w)
 
     view->Redraw();
 }
-void MouseHandler::OnKeyDown(IntPtr viewerHandlePtr, char key)
-{
-}
-void MouseHandler::OnKeyUp(IntPtr viewerHandlePtr, char key)
-{
-    native = reinterpret_cast<NativeViewerHandle*>(viewerHandlePtr.ToPointer());
-    if (!native) return;
-    HandleKeyMode(native, key);
-}
+void MouseHandler::OnKeyDown(IntPtr viewerHandlePtr, char key) {}
+void MouseHandler::OnKeyUp(IntPtr viewerHandlePtr, char key) { native = reinterpret_cast<NativeViewerHandle*>(viewerHandlePtr.ToPointer()); if (!native) return; HandleKeyMode(native, key); }
 void MouseHandler::HandleMouseDownAction(Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, int x, int y, bool multipleselect)
 {
     switch (MouseHandler::GetCurrentMode())

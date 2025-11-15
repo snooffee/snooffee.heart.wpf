@@ -1,3 +1,4 @@
+﻿#pragma once
 #include <AIS_InteractiveObject.hxx>
 #include <Prs3d_Presentation.hxx>
 #include <PrsMgr_PresentationManager3d.hxx>
@@ -8,98 +9,105 @@
 #include <Graphic3d_ZLayerId.hxx>
 #include <Prs3d_Root.hxx>
 #include <SelectMgr_Selection.hxx>
-#include <SelectMgr_EntityOwner.hxx>
-#include <gp_Elips.hxx>
-#include <gp_Ax2.hxx>
 #include <gp_Pnt.hxx>
 #include <gp_Dir.hxx>
+#include <gp_Vec.hxx>
 #include <cmath>
-#include <gp_Circ.hxx>
-#include <Select3D_SensitiveEntity.hxx>
-#include <Bnd_Box.hxx>
-#include <BRepBndLib.hxx>
-#include <Select3D_SensitiveBox.hxx>
-#include <TopoDS_Edge.hxx>
-#include <BRepBuilderAPI_MakeEdge.hxx>
 
 class AIS_OverlayEllipse : public AIS_InteractiveObject
 {
 public:
     AIS_OverlayEllipse()
-        : myCenter(0, 0, 0), myRadiusX(0.0), myRadiusY(0.0)
+        : myCenter(0, 0, 0), myRadiusX(0.0), myRadiusY(0.0), isPlaneMode(false)
     {
+        // Put this in top overlay layer (always visible)
         this->SetZLayer(Graphic3d_ZLayerId_TopOSD);
         Handle(Graphic3d_TransformPers) trpers = new Graphic3d_TransformPers(Graphic3d_TMF_2d);
         this->SetTransformPersistence(trpers);
     }
 
+    // --- For 2D overlay ellipse (screen plane) ---
     void SetEllipse(const gp_Pnt& center, double radiusX, double radiusY)
     {
         myCenter = center;
         myRadiusX = radiusX;
         myRadiusY = radiusY;
+        isPlaneMode = false;
         this->Redisplay(Standard_True);
     }
 
-    virtual void Compute(const Handle(PrsMgr_PresentationManager3d)& thePM,
+    // --- For ellipse on 3D plane (like circle plane mode) ---
+    void SetEllipseOnPlane(const gp_Pnt& center, const gp_Dir& uDir, const gp_Dir& vDir,
+        double radiusX, double radiusY)
+    {
+        myCenter = center;
+        myU = uDir;
+        myV = vDir;
+        myRadiusX = radiusX;
+        myRadiusY = radiusY;
+        isPlaneMode = true;
+
+        // ✅ Important: Disable screen-space transform persistence for 3D plane ellipse
+        this->SetTransformPersistence(nullptr);
+
+        this->Redisplay(Standard_True);
+    }
+
+protected:
+    void Compute(const Handle(PrsMgr_PresentationManager3d)&,
         const Handle(Prs3d_Presentation)& thePresentation,
-        const Standard_Integer theMode) override
+        const Standard_Integer) override
     {
         Handle(Graphic3d_Group) aGroup = Prs3d_Root::CurrentGroup(thePresentation);
-
         const int numSegments = 64;
-        Handle(Graphic3d_ArrayOfSegments) segs = new Graphic3d_ArrayOfSegments(2 * numSegments);  // 2 vertices per segment
+        Handle(Graphic3d_ArrayOfSegments) segs = new Graphic3d_ArrayOfSegments(2 * numSegments);
 
-        // Loop through each segment and calculate its start and end points
         for (int i = 0; i < numSegments; ++i)
         {
             double ang1 = (2.0 * M_PI * i) / numSegments;
             double ang2 = (2.0 * M_PI * (i + 1)) / numSegments;
 
-            double x1 = myCenter.X() + myRadiusX * cos(ang1);
-            double y1 = myCenter.Y() + myRadiusY * sin(ang1);
-            double x2 = myCenter.X() + myRadiusX * cos(ang2);
-            double y2 = myCenter.Y() + myRadiusY * sin(ang2);
+            gp_Pnt p1, p2;
 
-            // Add the segment between the two calculated points, cast the coordinates to Standard_ShortReal
-            segs->AddVertex(Standard_ShortReal(x1), Standard_ShortReal(y1), Standard_ShortReal(myCenter.Z()));
-            segs->AddVertex(Standard_ShortReal(x2), Standard_ShortReal(y2), Standard_ShortReal(myCenter.Z()));
+            if (isPlaneMode)
+            {
+                // Compute ellipse in 3D plane using local u,v directions
+                gp_Vec v1 = gp_Vec(myU) * (myRadiusX * cos(ang1)) + gp_Vec(myV) * (myRadiusY * sin(ang1));
+                gp_Vec v2 = gp_Vec(myU) * (myRadiusX * cos(ang2)) + gp_Vec(myV) * (myRadiusY * sin(ang2));
+                p1 = myCenter.Translated(v1);
+                p2 = myCenter.Translated(v2);
+            }
+            else
+            {
+                // Compute ellipse in XY plane (overlay mode)
+                double x1 = myCenter.X() + myRadiusX * cos(ang1);
+                double y1 = myCenter.Y() + myRadiusY * sin(ang1);
+                double x2 = myCenter.X() + myRadiusX * cos(ang2);
+                double y2 = myCenter.Y() + myRadiusY * sin(ang2);
+                p1 = gp_Pnt(x1, y1, myCenter.Z());
+                p2 = gp_Pnt(x2, y2, myCenter.Z());
+            }
+
+            segs->AddVertex(Standard_ShortReal(p1.X()), Standard_ShortReal(p1.Y()), Standard_ShortReal(p1.Z()));
+            segs->AddVertex(Standard_ShortReal(p2.X()), Standard_ShortReal(p2.Y()), Standard_ShortReal(p2.Z()));
         }
 
+        // Green ellipse line
         Quantity_Color colLine(Quantity_NOC_GREEN);
         Handle(Graphic3d_AspectLine3d) asp = new Graphic3d_AspectLine3d(colLine, Aspect_TOL_SOLID, 1.0f);
-
         aGroup->SetPrimitivesAspect(asp);
         aGroup->AddPrimitiveArray(segs);
     }
 
-    virtual void ComputeSelection(const Handle(SelectMgr_Selection)& theSelection,
-        const Standard_Integer theMode) override
+    void ComputeSelection(const Handle(SelectMgr_Selection)&,
+        const Standard_Integer) override
     {
-        // Create the ellipse geometry using the center, and two radii
-        gp_Elips ellipse(gp_Ax2(myCenter, gp_Dir(0, 0, 1)), myRadiusX, myRadiusY);
-
-        // Convert the gp_Elips to a TopoDS_Edge
-        gp_Circ circle(gp_Ax2(myCenter, gp_Dir(0, 0, 1)), myRadiusX);
-        BRepBuilderAPI_MakeEdge edgeMaker(circle);
-        TopoDS_Edge edge = edgeMaker.Edge();
-
-        // Compute the bounding box for the edge (approximated ellipse as a circle)
-        Bnd_Box boundingBox;
-        BRepBndLib::Add(edge, boundingBox);
-
-        // Create a sensitive entity from the bounding box (for selection purposes)
-        Handle(SelectMgr_EntityOwner) owner = new SelectMgr_EntityOwner(this);
-        Handle(Select3D_SensitiveBox) sensitiveBox = new Select3D_SensitiveBox(owner, boundingBox);
-
-        // Add the sensitive entity (the bounding box) to the selection manager
-        theSelection->Add(sensitiveBox);
+        // No selection for overlays
     }
 
-
-
 private:
-    gp_Pnt myCenter;   // Center point of the ellipse
-    double myRadiusX;  // Horizontal radius (X-axis)
-    double myRadiusY;  // Vertical radius (Y-axis)
+    gp_Pnt myCenter;
+    gp_Dir myU, myV;
+    double myRadiusX, myRadiusY;
+    bool isPlaneMode;
 };

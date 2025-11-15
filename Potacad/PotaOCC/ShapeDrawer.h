@@ -49,9 +49,13 @@ namespace PotaOCC {
         static void ResetView(IntPtr viewerHandlePtr);
 
         static gp_Pnt ScreenToWorld(Handle(V3d_View) view, double screenX, double screenY);
+        static gp_Pnt ScreenToPlane(Handle(V3d_View) view, double screenX, double screenY);
         static TopoDS_Edge CreateEdgeSafe(const gp_Pnt& p1, const gp_Pnt& p2);
         static TopoDS_Edge CreateCircleSafe(const gp_Circ& circle);
-        static TopoDS_Edge CreateEllipseSafe(const gp_Elips& ellipse);
+        static TopoDS_Wire CreateEllipseSafe(const gp_Pnt& center,
+            double radiusX,
+            double radiusY,
+            int numSegments);
         static void SetupOverlay(Handle(AIS_InteractiveObject)& obj, const Quantity_NameOfColor color, double width);
 
         static void eraseLineByDetectedIO(Handle(AIS_InteractiveObject) detectedIO, std::vector<Handle(AIS_Shape)>& persistedLines);

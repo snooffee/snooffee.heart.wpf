@@ -23,7 +23,6 @@
 #include <Geom_TrimmedCurve.hxx>
 #include <ShapeFix_Wire.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
-
 #include <AIS_Shape.hxx>
 #include <Prs3d_LineAspect.hxx>
 #include <Prs3d_Drawer.hxx>
@@ -33,8 +32,8 @@
 #include <Geom_Line.hxx>
 #include <GeomAdaptor_Curve.hxx>
 #include <GCPnts_AbscissaPoint.hxx>
-
-
+#include <gp_Pnt.hxx>
+#include <gp_Elips.hxx>
 using namespace PotaOCC;
 
 // Thread-safe map for 3D boxes per viewer
@@ -501,6 +500,12 @@ gp_Pnt ShapeDrawer::ScreenToWorld(Handle(V3d_View) view, double screenX, double 
     view->Convert(screenX, screenY, X, Y, Z);
     return gp_Pnt(X, Y, 0);
 }
+gp_Pnt ShapeDrawer::ScreenToPlane(Handle(V3d_View) view, double screenX, double screenY)
+{
+    Standard_Real X, Y, Z;
+    view->Convert(screenX, screenY, X, Y, Z);
+    return gp_Pnt(X, Y, Z);
+}
 
 TopoDS_Edge ShapeDrawer::CreateEdgeSafe(const gp_Pnt& p1, const gp_Pnt& p2)
 {
@@ -521,18 +526,38 @@ TopoDS_Edge ShapeDrawer::CreateCircleSafe(const gp_Circ& circle)
         std::cerr << "Failed to create circle edge." << std::endl;
         return TopoDS_Edge();
     }
+
     return edgeMaker.Edge();
 }
-TopoDS_Edge ShapeDrawer::CreateEllipseSafe(const gp_Elips& ellipse)
+
+TopoDS_Wire ShapeDrawer::CreateEllipseSafe(const gp_Pnt& center,
+    double radiusX,
+    double radiusY,
+    int numSegments)
 {
-    BRepBuilderAPI_MakeEdge edgeMaker(ellipse);
-    if (!edgeMaker.IsDone())
+    if (radiusX <= 0.0 || radiusY <= 0.0)
+        return TopoDS_Wire(); // invalid ellipse
+
+    BRepBuilderAPI_MakeWire wireBuilder;
+
+    for (int i = 0; i < numSegments; ++i)
     {
-        std::cerr << "Failed to create ellipse edge." << std::endl;
-        return TopoDS_Edge();
+        double angle1 = 2.0 * M_PI * i / numSegments;
+        double angle2 = 2.0 * M_PI * (i + 1) / numSegments;
+
+        gp_Pnt p1(center.X() + radiusX * cos(angle1),
+            center.Y() + radiusY * sin(angle1),
+            center.Z());
+        gp_Pnt p2(center.X() + radiusX * cos(angle2),
+            center.Y() + radiusY * sin(angle2),
+            center.Z());
+
+        wireBuilder.Add(BRepBuilderAPI_MakeEdge(p1, p2));
     }
-    return edgeMaker.Edge();
+
+    return wireBuilder.Wire();
 }
+
 
 void ShapeDrawer::SetupOverlay(Handle(AIS_InteractiveObject)& obj, const Quantity_NameOfColor color, double width)
 {

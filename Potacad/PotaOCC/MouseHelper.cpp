@@ -21,16 +21,46 @@
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
 #include "RectangleDrawer.h"
+#include <Geom_Plane.hxx>
+#include <Geom_Surface.hxx>
+#include <BRep_Tool.hxx>
+#include <gp_Ax1.hxx>
 
 using namespace PotaOCC;
+
 using namespace GeometryHelper;
+
 using namespace ViewHelper;
+
 using namespace MateHelper;
 
 namespace PotaOCC
 {
     namespace MouseHelper
     {
+        gp_Pnt Get3DPntOnPlane(const Handle(V3d_View)& view, const gp_Pnt& planeOrigin, const gp_Dir& planeNormal, int xPixel, int yPixel)
+        {
+            // Screen → eye ray
+            Standard_Real xEye, yEye, zEye;
+            Standard_Real xDir, yDir, zDir;
+
+            view->Convert(xPixel, yPixel, xEye, yEye, zEye);
+            view->Proj(xDir, yDir, zDir);
+
+            gp_Pnt eye(xEye, yEye, zEye);
+            gp_Dir dir(gp_Vec(xDir, yDir, zDir));
+            gp_Vec l(eye, eye.Translated(dir));
+
+            // Line-plane intersection
+            gp_Vec n(planeNormal.X(), planeNormal.Y(), planeNormal.Z());
+            gp_Vec eyeToPlane(planeOrigin, eye);
+
+            double denom = n.Dot(l);
+            if (fabs(denom) < Precision::Confusion()) return gp_Pnt(); // parallel
+
+            double t = -n.Dot(eyeToPlane) / denom;
+            return eye.Translated(l * t);
+        }
         gp_Pnt Get3DPntFromScreen(Handle(V3d_View) view, int x, int y)
         {
             Standard_Real X, Y, Z;
@@ -41,17 +71,17 @@ namespace PotaOCC
         {
             return LineDrawer::DrawLine(view, viewerHandlePtr, native->dragStartX, native->dragStartY, native->dragEndX, native->dragEndY, h, w);
         }
-        Handle(AIS_Shape) DrawCircle(NativeViewerHandle* native, Handle(V3d_View) view, IntPtr viewerHandlePtr, int h, int w)
+        Handle(AIS_Shape) DrawCircle(NativeViewerHandle* native, Handle(V3d_View) view, IntPtr viewerHandlePtr, int h, int w, int x, int y)
         {
-            return new AIS_Shape(CircleDrawer::DrawCircle(view, viewerHandlePtr, native->dragStartX, native->dragStartY, native->dragEndX, native->dragEndY, h, w));
+            return new AIS_Shape(CircleDrawer::DrawCircle(native, view, viewerHandlePtr, native->dragStartX, native->dragStartY, native->dragEndX, native->dragEndY, h, w, x, y));
         }
-        Handle(AIS_Shape) DrawRectangle(NativeViewerHandle* native, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, IntPtr viewerHandlePtr, int h, int w)
+        Handle(AIS_Shape) DrawRectangle(NativeViewerHandle* native, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view)
         {
             return RectangleDrawer::DrawRectangle(context, native, view);
         }
-        Handle(AIS_Shape) DrawEllipse(NativeViewerHandle* native, Handle(V3d_View) view, IntPtr viewerHandlePtr, int h, int w)
+        Handle(AIS_Shape) DrawEllipse(NativeViewerHandle* native, Handle(V3d_View) view, IntPtr viewerHandlePtr, int h, int w, int x, int y)
         {
-            return new AIS_Shape(EllipseDrawer::DrawEllipse(view, viewerHandlePtr, native->dragStartX, native->dragStartY, native->dragEndX, native->dragEndY, h, w));
+            return new AIS_Shape(EllipseDrawer::DrawEllipse(native, view, viewerHandlePtr, native->dragStartX, native->dragStartY, native->dragEndX, native->dragEndY, h, w, x, y));
         }
         void ResetDragState(NativeViewerHandle* native)
         {
@@ -229,23 +259,25 @@ namespace PotaOCC
             native->dragStartX = x;
             native->dragStartY = y;
         }
-        void HandleCircleMode(NativeViewerHandle* native, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, IntPtr viewerHandlePtr, int h, int w)
+        void HandleCircleMode(NativeViewerHandle* native, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, IntPtr viewerHandlePtr, int h, int w, int x, int y)
         {
-            Handle(AIS_Shape) aisCircle = DrawCircle(native, view, viewerHandlePtr, h, w);
+            Handle(AIS_Shape) aisCircle = DrawCircle(native, view, viewerHandlePtr, h, w, x, y);
+            aisCircle->SetColor(Quantity_NOC_BLACK);  // Or any color
+            aisCircle->SetWidth(2.0);                 // Line thickness
             context->Display(aisCircle, Standard_True);
             native->persistedCircles.push_back(aisCircle);
             ClearCreateEntity(native);
         }
-        void HandleEllipseMode(NativeViewerHandle* native, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, IntPtr viewerHandlePtr, int h, int w)
+        void HandleEllipseMode(NativeViewerHandle* native, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, IntPtr viewerHandlePtr, int h, int w, int x, int y)
         {
-            Handle(AIS_Shape) aisEllipse = DrawEllipse(native, view, viewerHandlePtr, h, w);
+            Handle(AIS_Shape) aisEllipse = DrawEllipse(native, view, viewerHandlePtr, h, w, x, y);
             context->Display(aisEllipse, Standard_True); // Show the ellipse
             native->persistedEllipses.push_back(aisEllipse); // Save the ellipse for later use
             ClearCreateEntity(native); // Reset state if needed (based on your existing methods)
         }
-        void HandleRectangleMode(NativeViewerHandle* native, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, IntPtr viewerHandlePtr, int h, int w)
+        void HandleRectangleMode(NativeViewerHandle* native, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, IntPtr viewerHandlePtr, int h, int w, int x, int y)
         {
-            Handle(AIS_Shape) aisRect = DrawRectangle(native, context, view, viewerHandlePtr, h, w);
+            Handle(AIS_Shape) aisRect = DrawRectangle(native, context, view);
             if (aisRect.IsNull())
                 return;
 
@@ -313,17 +345,11 @@ namespace PotaOCC
             TopoDS_Shape resultShape = ShapeBooleanOperator::PerformBooleanOperation(shape1, shape2, native, context, view, success);
 
             if (native->isBooleanCutMode)
-                ShapeBooleanOperator::FinalizeBooleanResult(native, context, view, resultShape,
-                    "Boolean Cut operation succeeded.",
-                    "Boolean Cut operation failed.", success);
+                ShapeBooleanOperator::FinalizeBooleanResult(native, context, view, resultShape, "BCut operation succeeded.", "BCut operation failed.", success);
             else if (native->isBooleanUnionMode)
-                ShapeBooleanOperator::FinalizeBooleanResult(native, context, view, resultShape,
-                    "Boolean Union operation succeeded.",
-                    "Boolean Union operation failed.", success);
+                ShapeBooleanOperator::FinalizeBooleanResult(native, context, view, resultShape, "BUnion operation succeeded.", "BUnion operation failed.", success);
             else if (native->isBooleanIntersectMode)
-                ShapeBooleanOperator::FinalizeBooleanResult(native, context, view, resultShape,
-                    "Boolean Intersect operation succeeded.",
-                    "Boolean Intersect operation failed.", success);
+                ShapeBooleanOperator::FinalizeBooleanResult(native, context, view, resultShape, "BIntersect operation succeeded.", "BIntersect operation failed.", success);
         }
         void HandleObjectDetection(Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, int x, int y)
         {
@@ -368,73 +394,152 @@ namespace PotaOCC
 
             native->context->Display(native->lineOverlay, Standard_True);
         }
-        void DrawCircleOverlay(NativeViewerHandle* native, int height)
+        void DrawCircleOverlay(NativeViewerHandle* native, Handle(V3d_View) view, int height, int mouseX, int mouseY)
         {
             if (native->circleOverlay.IsNull())
                 native->circleOverlay = new AIS_OverlayCircle();
 
-            double dx = native->dragEndX - native->dragStartX;
-            double dy = native->dragEndY - native->dragStartY;
-            double radius = std::sqrt(dx * dx + dy * dy);
+            if (native->isPlaneMode) {
+                native->circleOverlay->SetTransformPersistence(nullptr);
 
-            int centerYFlipped = height - native->dragStartY;
+                // Step 1: Get 3D point on the plane under current mouse
+                gp_Pnt cursor3D = MouseHelper::Get3DPntOnPlane(
+                    view,
+                    native->planeOrigin,
+                    native->planeNormal,
+                    mouseX,
+                    mouseY
+                );
 
-            native->circleOverlay->SetCircle(
-                gp_Pnt(native->dragStartX, centerYFlipped, 0.0),
-                radius);
+                // Step 2: Compute radius from drag start point
+                gp_Vec radiusVec(native->dragStartPoint, cursor3D);
+                double radius = radiusVec.Magnitude();
 
+                // Step 3: Set the circle overlay on the correct plane
+                gp_Ax2 circleAxis(native->dragStartPoint, native->planeNormal);
+                native->circleOverlay->SetCircle(circleAxis, radius);
+            }
+            else {
+                if (!native->circleOverlay->TransformPersistence())
+                {
+                    Handle(Graphic3d_TransformPers) trpers = new Graphic3d_TransformPers(Graphic3d_TMF_2d);
+                    native->circleOverlay->SetTransformPersistence(trpers);
+                }
+                double dx = native->dragEndX - native->dragStartX;
+                double dy = native->dragEndY - native->dragStartY;
+                double radius = std::sqrt(dx * dx + dy * dy);
+
+                int centerYFlipped = height - native->dragStartY;
+
+                native->circleOverlay->SetCircle(
+                    gp_Pnt(native->dragStartX, centerYFlipped, 0.0),
+                    radius);
+            }
             native->context->Display(native->circleOverlay, Standard_True);
         }
-        void DrawEllipseOverlay(NativeViewerHandle* native, int height)
+        void DrawEllipseOverlay(NativeViewerHandle* native, Handle(V3d_View) view, int height, int mouseX, int mouseY)
         {
             if (native->ellipseOverlay.IsNull())
                 native->ellipseOverlay = new AIS_OverlayEllipse();
 
-            double dx = native->dragEndX - native->dragStartX;
-            double dy = native->dragEndY - native->dragStartY;
-            double radiusX = std::abs(dx);  // Horizontal radius (X-axis)
-            double radiusY = std::abs(dy);  // Vertical radius (Y-axis)
-
-            if (radiusX < radiusY)
+            if (native->isPlaneMode)
             {
-                std::swap(radiusX, radiusY);  // Swap if needed
-            }
+                // --- Plane-based ellipse drawing ---
+                gp_Pnt cursor3D = MouseHelper::Get3DPntOnPlane(
+                    view,
+                    native->planeOrigin,
+                    native->planeNormal,
+                    mouseX,
+                    mouseY
+                );
 
-            if (radiusX <= 0 || radiusY <= 0)
+                gp_Pnt startPnt = native->dragStartPoint;
+
+                gp_Ax2 planeAxis(native->planeOrigin, native->planeNormal);
+                gp_Dir uDir = planeAxis.XDirection();
+                gp_Dir vDir = planeAxis.YDirection();
+
+                gp_Vec dragVec(startPnt, cursor3D);
+                double u = dragVec.Dot(gp_Vec(uDir));
+                double v = dragVec.Dot(gp_Vec(vDir));
+
+                double radiusX = std::abs(u) * 0.5;
+                double radiusY = std::abs(v) * 0.5;
+
+                gp_Pnt center = startPnt.Translated(
+                    gp_Vec(uDir) * (u * 0.5) + gp_Vec(vDir) * (v * 0.5)
+                );
+
+                native->ellipseOverlay->SetEllipseOnPlane(center, uDir, vDir, radiusX, radiusY);
+            }
+            else
             {
-                //std::cerr << "Invalid radii: Cannot create ellipse." << std::endl;
-                return;
-            }
+                // --- 2D screen fallback ---
+                double dx = mouseX - native->dragStartX;
+                double dy = mouseY - native->dragStartY;
+                double radiusX = std::abs(dx) * 0.5;
+                double radiusY = std::abs(dy) * 0.5;
 
-            // Adjust the Y coordinate (Flip to match OpenCASCADE's coordinate system)
-            int centerYFlipped = height - native->dragStartY;
-            try {
+                int centerX = native->dragStartX + dx * 0.5;
+                int centerYFlipped = height - (native->dragStartY + dy * 0.5);
+
                 native->ellipseOverlay->SetEllipse(
-                    gp_Pnt(native->dragStartX, centerYFlipped, 0.0),  // Center of ellipse
-                    radiusX,  // Major radius (horizontal)
-                    radiusY   // Minor radius (vertical)
+                    gp_Pnt(centerX, centerYFlipped, 0.0),
+                    radiusX,
+                    radiusY
                 );
             }
-            catch (const Standard_ConstructionError& e) {
-                std::cerr << "Error while constructing the ellipse: " << e.GetMessageString() << std::endl;
-                return;
-            }
 
-            // Display the ellipse
             native->context->Display(native->ellipseOverlay, Standard_True);
         }
-        void DrawRectangleOverlay(NativeViewerHandle* native, int height)
+        void DrawRectangleOverlay(NativeViewerHandle* native, Handle(V3d_View) view, int height, int mouseX, int mouseY)
         {
             if (native->rectangleOverlay.IsNull())
                 native->rectangleOverlay = new AIS_OverlayRectangle();
 
-            int startYFlipped = height - native->dragStartY;
-            int endYFlipped = height - native->dragEndY;
+            if (native->isPlaneMode)
+            {
+                native->rectangleOverlay->SetTransformPersistence(nullptr);
 
-            gp_Pnt p1(native->dragStartX, startYFlipped, 0.0);
-            gp_Pnt p2(native->dragEndX, endYFlipped, 0.0);
+                // 3D point on plane
+                gp_Pnt cursor3D = MouseHelper::Get3DPntOnPlane(
+                    view,
+                    native->planeOrigin,
+                    native->planeNormal,
+                    mouseX,
+                    mouseY
+                );
 
-            native->rectangleOverlay->SetRectangle(p1, p2);
+                gp_Pnt endPnt = cursor3D; // <-- use local variable
+
+                gp_Pnt startPnt = native->dragStartPoint;
+                gp_Ax2 planeAxis(native->planeOrigin, native->planeNormal);
+                gp_Dir uDir = planeAxis.XDirection();
+                gp_Dir vDir = planeAxis.YDirection();
+
+                gp_Vec dragVec(startPnt, cursor3D);
+                double u = dragVec.Dot(gp_Vec(uDir));
+                double v = dragVec.Dot(gp_Vec(vDir));
+
+                gp_Pnt p1 = startPnt;
+                gp_Pnt p2 = startPnt.Translated(gp_Vec(uDir) * u);
+                gp_Pnt p3 = startPnt.Translated(gp_Vec(uDir) * u + gp_Vec(vDir) * v);
+                gp_Pnt p4 = startPnt.Translated(gp_Vec(vDir) * v);
+
+                native->rectangleOverlay->SetRectangle(p1, p2, p3, p4);
+            }
+            else
+            {
+                // 2D screen-space fallback
+                int startYFlipped = height - native->dragStartY;
+                int endYFlipped = height - native->dragEndY;
+
+                gp_Pnt p1(native->dragStartX, startYFlipped, 0.0);
+                gp_Pnt p2(native->dragEndX, endYFlipped, 0.0);
+
+                native->rectangleOverlay->SetRectangle(p1, p2);
+            }
+
             native->context->Display(native->rectangleOverlay, Standard_True);
         }
         void DrawDimensionOverlay(NativeViewerHandle* native, Handle(V3d_View) view, const gp_Pnt& p1, const gp_Pnt& p2, const gp_Pnt& cursor, bool isFinal)
@@ -580,17 +685,40 @@ namespace PotaOCC
         void HandleExtrude(NativeViewerHandle* native, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, int y)
         {
             int dy = y - native->lastMouseY;
-            native->currentExtrudeHeight = -dy * 1.0;  // scale factor
 
+            // Determine extrusion height based on plane type
+            // World-aligned planes (XY, XZ, YZ)
+            auto isWorldAlignedPlane = [](const gp_Dir& n)
+                {
+                    double dx = Abs(n.Dot(gp::DX()));
+                    double dy = Abs(n.Dot(gp::DY()));
+                    double dz = Abs(n.Dot(gp::DZ()));
+                    return (dx > 0.99 || dy > 0.99 || dz > 0.99);
+                };
+
+            if (isWorldAlignedPlane(native->planeNormal))
+            {
+                // Simple up/down extrude for world planes
+                native->currentExtrudeHeight = -dy * 1.0;
+            }
+            else
+            {
+                // Arbitrary face: extrusion follows mouse Y direction
+                native->currentExtrudeHeight = dy * 1.0;
+            }
+
+            // Stop if no movement
             if (native->currentExtrudeHeight == 0)
             {
                 view->Redraw();
                 return;
             }
 
+            // Remove previous preview
             if (!native->extrudePreviewShape.IsNull())
                 context->Remove(native->extrudePreviewShape, Standard_False);
 
+            // Rebuild preview
             ShapeExtruder extruder(native);
             extruder.ExtrudeWireAndDisplayPreview(context);
 
@@ -645,6 +773,76 @@ namespace PotaOCC
             {
                 HandleEdgeHover(native, x, y, context, view);
             }
+        }
+        void PrepareFaceDetection(Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, int x, int y)
+        {
+            context->Deactivate();
+            context->Activate(TopAbs_FACE); // Only detect faces
+            context->MoveTo(x, y, view, Standard_True);
+        }
+        TopoDS_Shape GetDetectedShapeOrOwner(Handle(AIS_InteractiveContext) context)
+        {
+            TopoDS_Shape subShape = context->DetectedShape();
+            if (subShape.IsNull())
+            {
+                Handle(SelectMgr_EntityOwner) owner = context->DetectedOwner();
+                if (!owner.IsNull() && owner->HasSelectable())
+                {
+                    subShape = Handle(AIS_Shape)::DownCast(owner->Selectable())->Shape();
+                }
+            }
+            return subShape;
+        }
+        void SetupPlaneForFace(NativeViewerHandle* native, Handle(V3d_View) view, const TopoDS_Face& face, int x, int y)
+        {
+            Handle(Geom_Surface) surf = BRep_Tool::Surface(face);
+            Handle(Geom_Plane) plane = Handle(Geom_Plane)::DownCast(surf);
+
+            if (plane.IsNull())
+            {
+                std::cout << "⚠️ Selected face is not planar!" << std::endl;
+                return;
+            }
+            native->planeOrigin = plane->Location();
+            native->planeNormal = plane->Axis().Direction();
+            native->dragStartPoint = MouseHelper::Get3DPntOnPlane(view, native->planeOrigin, native->planeNormal, x, y);
+        }
+        void HandleDetectedShape(NativeViewerHandle* native, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, int x, int y)
+        {
+            Handle(AIS_Shape) detected = Handle(AIS_Shape)::DownCast(context->DetectedInteractive());
+            if (detected.IsNull())
+            {
+                std::cout << "⚠️ No valid shape detected!" << std::endl;
+                return;
+            }
+
+            TopoDS_Shape subShape = GetDetectedShapeOrOwner(context);
+            if (subShape.IsNull() || subShape.ShapeType() != TopAbs_FACE)
+            {
+                std::cout << "⚠️ No face detected (maybe edge or vertex selected)!" << std::endl;
+                return;
+            }
+
+            TopoDS_Face clickedFace = TopoDS::Face(subShape);
+            SetupPlaneForFace(native, view, clickedFace, x, y);
+        }
+        void HandleShapeSelection(NativeViewerHandle* native, Handle(AIS_InteractiveContext) context, Handle(V3d_View) view, int mouseX, int mouseY)
+        {
+            PrepareFaceDetection(context, view, mouseX, mouseY);
+
+            if (!context->HasDetected())
+            {
+                native->isPlaneMode = false;
+            }
+            else
+            {
+                native->isPlaneMode = true;
+                HandleDetectedShape(native, context, view, mouseX, mouseY);
+            }
+
+            native->dragStartX = mouseX;
+            native->dragStartY = mouseY;
+            native->isDragging = true;
         }
     }
 }

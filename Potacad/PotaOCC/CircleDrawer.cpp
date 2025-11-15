@@ -16,22 +16,48 @@
 #include <Aspect_TypeOfLine.hxx>
 #include <TopoDS_Shape.hxx>
 #include <TopoDS_Edge.hxx>
-
+#include "MouseHelper.h"
+using namespace PotaOCC::MouseHelper;
 using namespace PotaOCC;
 
-TopoDS_Edge CircleDrawer::DrawCircle(Handle(V3d_View) view, IntPtr viewerHandlePtr, double dragStartX, double dragStartY, double dragEndX, double dragEndY, int h, int w)
+//TopoDS_Edge CircleDrawer::DrawCircle(Handle(V3d_View) view, IntPtr viewerHandlePtr, double dragStartX, double dragStartY, double dragEndX, double dragEndY, int h, int w)
+//{
+//    Handle(AIS_OverlayCircle) persistentCircle = new AIS_OverlayCircle();
+//    ShapeDrawer::SetupOverlay(persistentCircle, Quantity_NOC_RED, 2.0);
+//
+//    gp_Pnt center = ShapeDrawer::ScreenToWorld(view, dragStartX, dragStartY);
+//    gp_Pnt edgePoint = ShapeDrawer::ScreenToWorld(view, dragEndX, dragEndY);
+//
+//    double radius = center.Distance(edgePoint);
+//
+//    gp_Circ circle(gp_Ax2(center, gp_Dir(0, 0, 1)), radius);
+//
+//    return ShapeDrawer::CreateCircleSafe(circle);
+//}
+TopoDS_Edge CircleDrawer::DrawCircle(NativeViewerHandle* native, Handle(V3d_View) view, IntPtr viewerHandlePtr, double dragStartX, double dragStartY, double dragEndX, double dragEndY, int h, int w, int x, int y)
 {
     Handle(AIS_OverlayCircle) persistentCircle = new AIS_OverlayCircle();
     ShapeDrawer::SetupOverlay(persistentCircle, Quantity_NOC_RED, 2.0);
 
-    gp_Pnt center = ShapeDrawer::ScreenToWorld(view, dragStartX, dragStartY);
-    gp_Pnt edgePoint = ShapeDrawer::ScreenToWorld(view, dragEndX, dragEndY);
+    if (native->isPlaneMode) {
+        native->dragEndX = x;
+        native->dragEndY = y;
+        gp_Pnt endPnt = Get3DPntOnPlane(view, native->planeOrigin, native->planeNormal, x, y);
+        double radius = native->dragStartPoint.Distance(endPnt);
+        gp_Ax2 circleAxis(native->dragStartPoint, native->planeNormal);
+        gp_Circ circle(circleAxis, radius);
+        return ShapeDrawer::CreateCircleSafe(circle);
+    }
+    else {
+        gp_Pnt center = ShapeDrawer::ScreenToWorld(view, dragStartX, dragStartY);
+        gp_Pnt edgePoint = ShapeDrawer::ScreenToWorld(view, dragEndX, dragEndY);
 
-    double radius = center.Distance(edgePoint);
+        double radius = center.Distance(edgePoint);
 
-    gp_Circ circle(gp_Ax2(center, gp_Dir(0, 0, 1)), radius);
+        gp_Circ circle(gp_Ax2(center, gp_Dir(0, 0, 1)), radius);
 
-    return ShapeDrawer::CreateCircleSafe(circle);
+        return ShapeDrawer::CreateCircleSafe(circle);
+    }
 }
 
 

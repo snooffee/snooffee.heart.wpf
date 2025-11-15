@@ -44,7 +44,7 @@ Handle(AIS_Shape) LineDrawer::DrawLineWithoutSnapping(Handle(V3d_View) view, Sys
     aisLine->SetDisplayMode(AIS_WireFrame);
 
     // Setup appearance
-    Quantity_Color color(Quantity_NOC_WHITE);
+    Quantity_Color color(Quantity_NOC_BLACK);
     Handle(Prs3d_LineAspect) lineAspect = new Prs3d_LineAspect(color, Aspect_TOL_SOLID, 2.0);
     Handle(Prs3d_Drawer) drawer = aisLine->Attributes();
     drawer->SetWireAspect(lineAspect);
@@ -269,7 +269,7 @@ Handle(AIS_Shape) LineDrawer::DrawLine(
     aisLine->SetDisplayMode(AIS_WireFrame);
 
     // ========= APPEARANCE =========
-    Quantity_Color color(Quantity_NOC_WHITE);
+    Quantity_Color color(Quantity_NOC_BLACK);
     Handle(Prs3d_LineAspect) lineAspect = new Prs3d_LineAspect(color, Aspect_TOL_SOLID, 2.0);
     Handle(Prs3d_Drawer) drawer = aisLine->Attributes();
     drawer->SetWireAspect(lineAspect);

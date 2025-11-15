@@ -1,5 +1,4 @@
 ﻿#pragma once
-
 #include <AIS_InteractiveObject.hxx>
 #include <AIS_InteractiveContext.hxx>
 #include <AIS_Shape.hxx>
@@ -14,7 +13,11 @@
 #include "AIS_OverlayCircle.h"
 #include "AIS_OverlayEllipse.h"
 #include <BRepLib_MakeFace.hxx>
+#include <AIS_Plane.hxx>   // ✅ Added for workplane visualization
+#include <gp_Ax3.hxx>      // ✅ Added for workplane coordinate system
+
 #using <System.Windows.Forms.dll>
+
 using namespace System::Windows::Forms;
 
 namespace PotaOCC {
@@ -57,6 +60,7 @@ namespace PotaOCC {
         int dragStartY = 0;
         int dragEndX = 0;
         int dragEndY = 0;
+
 
         Handle(Graphic3d_Structure) rubberBandOverlay;
         Handle(Graphic3d_Group) rubberBandGroup;
@@ -142,6 +146,16 @@ namespace PotaOCC {
         Handle(AIS_Shape) highlightedFace;
         Handle(AIS_Shape) hoverHighlightedFace;
 
+        bool isWorkingPlaneActive = false;        // Whether user is sketching on a face
+        gp_Ax3 workingPlane;                      // The coordinate system of the selected face
+        Handle(AIS_Plane) workingPlaneVisual;     // Optional visual plane (for display)
+        Handle(AIS_Shape) workingPlaneAxis;       // Optional UCS axis arrows indicator
+
+        gp_Pnt dragStartPoint;                  // Store first click 3D point
+        gp_Pnt planeOrigin;                     // Origin of selected face plane
+        gp_Dir planeNormal;                     // Normal of selected face plane
+
+        bool isPlaneMode = false;
 
         NativeViewerHandle()
         {

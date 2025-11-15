@@ -9,7 +9,7 @@
 #include <iostream>
 #include <gp_Vec.hxx>
 
-// Forward declare the handle inside PotatoOCC namespace to match its real definition
+// Forward declare the handle inside PotaOCC namespace to match its real definition
 namespace PotaOCC {
     struct NativeViewerHandle;
 }

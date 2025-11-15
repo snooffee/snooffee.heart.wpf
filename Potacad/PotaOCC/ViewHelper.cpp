@@ -146,6 +146,8 @@ namespace PotaOCC
             native->isPlacingDimension = false;
 
             native->isZoomWindowMode = false;
+
+            native->isPlaneMode = false;
         }
 
         // Draw a center marker at a given point (x, y, z) in the 3D view
